@@ -43,29 +43,11 @@ const TARGET_GROUPS = {
 // ============= ROUTING & CORE FUNCTIONS =============
 
 function doGet(e) {
-  const page = (e && e.parameter && e.parameter.page) ? e.parameter.page : 'index';
-  let template;
-  let title = 'Attendance App';
-
-  switch (page) {
-    case 'info':
-      template = HtmlService.createTemplateFromFile('InfoSearch');
-      title = 'Member Info - Adanbagh';
-      break;
-    case 'admin':
-      template = HtmlService.createTemplateFromFile('Admin');
-      title = 'Admin Panel - Adanbagh';
-      break;
-    default:
-      template = HtmlService.createTemplateFromFile('Index');
-      title = 'Adanbagh Attendance';
-  }
-
-  // Pre-inject script URL server-side so all navigation links work instantly from millisecond 0
-  template.scriptUrl = ScriptApp.getService().getUrl();
-
+  // Ultra-fast Single Page Application (SPA): All modules (Attendance, Member Info, Admin)
+  // are unified into Index.html for instant 0ms tab switching with zero buffering!
+  const template = HtmlService.createTemplateFromFile('Index');
   return template.evaluate()
-    .setTitle(title)
+    .setTitle('Adanbagh Attendance Portal')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
