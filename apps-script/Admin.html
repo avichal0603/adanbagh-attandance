@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4F46E5">
+  <title>Admin Panel - Adanbagh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #fffbeb; -webkit-tap-highlight-color: transparent; }
+    
+    .card-enter { animation: card-enter 0.4s ease-out; }
+    @keyframes card-enter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .spinner { border: 4px solid rgba(255,255,255,.3); width: 20px; height: 20px; border-radius: 50%; border-left-color: #fff; animation: spin 0.9s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    button:active, .touch-btn:active { transform: scale(0.97); }
+    .required-star { color: #DC2626; }
+    
+    input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="date"], select {
+      width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.625rem 0.75rem; font-size: 0.95rem; outline: none; transition: all 0.15s ease;
+    }
+    input:focus, select:focus { border-color: #4F46E5; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25); }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-8">
+
+  <div class="relative w-full max-w-4xl m-2 sm:m-4 space-y-4">
+    
+    <!-- MAIN CARD -->
+    <div class="card-enter bg-white rounded-lg shadow-xl overflow-hidden border-t-8 border-yellow-400">
+      
+      <!-- HEADER -->
+      <div class="text-center p-6 bg-gray-50 relative border-b border-gray-100">
+        
+        <!-- Back to Attendance Link -->
+        <a href="#" id="homeLink" title="Back to Attendance" class="absolute top-4 right-4 text-gray-500 hover:text-indigo-600 p-1.5 bg-white rounded-md shadow-sm border border-gray-200 transition-all hover:shadow">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </a>
+
+        <h1 class="text-2xl font-bold text-gray-800">Adanbagh Branch</h1>
+        <h2 class="text-3xl font-bold text-indigo-700 mt-1">Admin Panel</h2>
+        <p class="text-sm text-gray-500 mt-2 tracking-widest uppercase">Ra-Dha-Sva-Aah-Mi</p>
+
+        <!-- TABS -->
+        <div class="flex border-b border-gray-200 mt-6 -mb-6">
+          <button id="tabRegister" class="flex-1 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors touch-btn">
+            Add New Member
+          </button>
+          <button id="tabAttendance" class="flex-1 pb-3 text-center font-bold text-gray-500 hover:text-indigo-600 border-b-2 border-transparent focus:outline-none transition-colors touch-btn">
+            Back-Date Attendance
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: ADD NEW MEMBER -->
+      <!-- ========================================== -->
+      <form id="addStudentForm" class="p-6 md:p-8 block space-y-6">
+        <p class="text-gray-600 text-sm">Register a new member to the records (<span class="required-star">*</span> = required)</p>
+
+        <!-- Target Sheet Selection -->
+        <fieldset>
+          <legend class="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">1. Select Target Sheet</legend>
+          <select id="targetGroup" required class="text-base font-semibold text-gray-800">
+            <option value="">-- Choose Category --</option>
+            <optgroup label="Satsang">
+              <option value="StudentB">Student Boys (Satsang)</option>
+              <option value="StudentG">Student Girls (Satsang)</option>
+              <option value="JigyasuG">Jigyasu Gents (Satsang)</option>
+              <option value="JigyasuL">Jigyasu Ladies (Satsang)</option>
+            </optgroup>
+            <optgroup label="Sewa">
+              <option value="StudentB_Sewa">Student Boys (Sewa)</option>
+              <option value="StudentG_Sewa">Student Girls (Sewa)</option>
+              <option value="JigyasuG_Sewa">Jigyasu Gents (Sewa)</option>
+              <option value="JigyasuL_Sewa">Jigyasu Ladies (Sewa)</option>
+            </optgroup>
+          </select>
+        </fieldset>
+
+        <div id="sewaCheckboxWrapper" class="hidden bg-indigo-50/70 p-3 rounded-md border border-indigo-100 flex items-center space-x-2">
+          <input type="checkbox" id="addToSewa" name="addToSewa" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+          <label for="addToSewa" class="text-xs font-semibold text-indigo-900 cursor-pointer">Also add this member to the corresponding Sewa sheet automatically</label>
+        </div>
+
+        <!-- Dynamic Form Fields -->
+        <div id="formFields" class="hidden space-y-6 card-enter">
+          
+          <!-- Member Details -->
+          <fieldset>
+            <legend class="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">2. Member Details</legend>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label for="title" class="block text-xs font-bold text-gray-700 mb-1">Title<span class="required-star"> *</span></label>
+                <select id="title" required><option value="MR">MR</option><option value="MS">MS</option></select>
+              </div>
+              <div>
+                <label for="firstName" class="block text-xs font-bold text-gray-700 mb-1">First Name<span class="required-star"> *</span></label>
+                <input type="text" id="firstName" required>
+              </div>
+              <div>
+                <label for="middleName" class="block text-xs font-bold text-gray-700 mb-1">Middle Name</label>
+                <input type="text" id="middleName">
+              </div>
+              <div>
+                <label for="lastName" class="block text-xs font-bold text-gray-700 mb-1">Last Name</label>
+                <input type="text" id="lastName">
+              </div>
+              <div class="md:col-span-2">
+                <label for="dob" class="block text-xs font-bold text-gray-700 mb-1">Date of Birth (DD-MM-YYYY)<span class="required-star"> *</span></label>
+                <input type="text" id="dob" required placeholder="DD-MM-YYYY">
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Family Details -->
+          <fieldset>
+            <legend class="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">3. Family Details</legend>
+            <!-- Father -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div class="md:col-span-4 font-semibold text-gray-800 text-sm">Father's Details</div>
+              <div><input type="text" id="fatherFirstName" placeholder="First Name *" required></div>
+              <div><input type="text" id="fatherMiddleName" placeholder="Middle Name"></div>
+              <div><input type="text" id="fatherLastName" placeholder="Last Name"></div>
+            </div>
+            <!-- Mother -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div class="md:col-span-4 font-semibold text-gray-800 text-sm">Mother's Details</div>
+              <div><input type="text" id="motherFirstName" placeholder="First Name *" required></div>
+              <div><input type="text" id="motherMiddleName" placeholder="Middle Name"></div>
+              <div><input type="text" id="motherLastName" placeholder="Last Name"></div>
+            </div>
+            <!-- Spouse (Jigyasu) -->
+            <div id="jigyasuSection" class="hidden grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="md:col-span-4 font-semibold text-gray-800 text-sm">Spouse's Details (Optional)</div>
+              <div>
+                <select id="spouseTitle"><option value="">N/A</option><option value="MR">MR</option><option value="MS">MS</option></select>
+              </div>
+              <div><input type="text" id="spouseFirstName" placeholder="First Name"></div>
+              <div><input type="text" id="spouseMiddleName" placeholder="Middle Name"></div>
+              <div><input type="text" id="spouseLastName" placeholder="Last Name"></div>
+            </div>
+          </fieldset>
+
+          <!-- Contact & Other Info -->
+          <fieldset>
+            <legend class="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">4. Contact & Other Info</legend>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Address Line 1</label>
+                <input type="text" id="address1" placeholder="House / Flat No">
+              </div>
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Address Line 2</label>
+                <input type="text" id="address2" placeholder="Street / Colony">
+              </div>
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Address Line 3<span class="required-star"> *</span></label>
+                <input type="text" id="address3" placeholder="Dayalbagh, Agra *" required>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Phone No.<span class="required-star"> *</span></label>
+                <input type="tel" id="phone" pattern="[0-9]*" required placeholder="10-digit Mobile">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Email ID</label>
+                <input type="email" id="email" placeholder="Optional">
+              </div>
+
+              <div id="classWrapper" class="hidden">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Class<span class="required-star"> *</span></label>
+                <input type="text" id="class">
+              </div>
+              <div id="occupationWrapper" class="hidden">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Occupation</label>
+                <input type="text" id="occupation">
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Member Aadhaar<span class="required-star"> *</span></label>
+                <input type="number" id="aadhar" required oninput="this.value = this.value.slice(0, 12)">
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="pt-4 flex justify-end">
+            <button id="submitBtn" type="submit" class="inline-flex items-center justify-center px-6 py-3 border border-transparent bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-md shadow-sm transition-all touch-btn">
+              <span id="submitBtnText">Add Member</span>
+              <div id="submitSpinner" class="spinner hidden"></div>
+            </button>
+          </div>
+
+        </div>
+
+        <div id="adminMessageArea" class="hidden text-center text-sm font-semibold p-3 rounded-md card-enter"></div>
+      </form>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: BACK-DATE ATTENDANCE -->
+      <!-- ========================================== -->
+      <div id="viewAttendance" class="hidden p-6 md:p-8 space-y-6">
+        
+        <div class="bg-indigo-50/70 border border-indigo-100 rounded-lg p-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">1. Target Sheet</label>
+              <select id="attTargetGroup" class="bg-white font-semibold">
+                <option value="">-- Select Target --</option>
+                <optgroup label="Satsang">
+                  <option value="StudentB">Student Boys (Satsang)</option>
+                  <option value="StudentG">Student Girls (Satsang)</option>
+                  <option value="JigyasuG">Jigyasu Gents (Satsang)</option>
+                  <option value="JigyasuL">Jigyasu Ladies (Satsang)</option>
+                </optgroup>
+                <optgroup label="Sewa">
+                  <option value="StudentB_Sewa">Student Boys (Sewa)</option>
+                  <option value="StudentG_Sewa">Student Girls (Sewa)</option>
+                  <option value="JigyasuG_Sewa">Jigyasu Gents (Sewa)</option>
+                  <option value="JigyasuL_Sewa">Jigyasu Ladies (Sewa)</option>
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">2. Target Date</label>
+              <input type="date" id="attDate" class="bg-white font-semibold text-gray-800">
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="space-y-4">
+          <label class="block text-xs font-bold text-gray-700 uppercase">3. Find Member</label>
+          <div class="flex items-center space-x-6 mb-2">
+            <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+              <input type="radio" name="attSearchType" value="branchNo" checked class="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"> Branch No.
+            </label>
+            <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+              <input type="radio" name="attSearchType" value="name" class="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"> Name
+            </label>
+          </div>
+          
+          <div class="flex shadow-sm rounded-md overflow-hidden border border-gray-300">
+            <input type="number" id="attSearchTerm" class="flex-1 px-4 py-3 outline-none sm:text-lg" placeholder="Enter Branch No...">
+            <button id="attSearchBtn" type="button" class="bg-indigo-600 text-white px-6 font-bold hover:bg-indigo-700 flex items-center justify-center transition-colors touch-btn">
+              <span id="attSearchBtnText">Search</span>
+              <div id="attSearchSpinner" class="spinner hidden"></div>
+            </button>
+          </div>
+        </div>
+
+        <div id="attResultsArea" class="space-y-3 pt-2"></div>
+        <div id="attMessageArea" class="hidden text-center text-sm font-bold p-3 rounded-md card-enter"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const homeLink = document.getElementById('homeLink');
+    const tabRegister = document.getElementById('tabRegister');
+    const tabAttendance = document.getElementById('tabAttendance');
+    const viewRegister = document.getElementById('viewRegister');
+    const viewAttendance = document.getElementById('viewAttendance');
+    const attDateInput = document.getElementById('attDate');
+
+    window.addEventListener('load', () => {
+      google.script.run.withSuccessHandler(url => { if (homeLink) homeLink.href = url; }).getScriptUrl();
+
+      tabRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabRegister.className = "flex-1 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors touch-btn";
+        tabAttendance.className = "flex-1 pb-3 text-center font-bold text-gray-500 hover:text-indigo-600 border-b-2 border-transparent focus:outline-none transition-colors touch-btn";
+        viewRegister.classList.replace('hidden', 'block');
+        viewAttendance.classList.replace('block', 'hidden');
+      });
+
+      tabAttendance.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabAttendance.className = "flex-1 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors touch-btn";
+        tabRegister.className = "flex-1 pb-3 text-center font-bold text-gray-500 hover:text-indigo-600 border-b-2 border-transparent focus:outline-none transition-colors touch-btn";
+        viewAttendance.classList.replace('hidden', 'block');
+        viewRegister.classList.replace('block', 'hidden');
+
+        if (!attDateInput.value) {
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          attDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+      });
+    });
+
+    // ============= REGISTRATION =============
+    const form = document.getElementById('addStudentForm');
+    const targetGroupSelect = document.getElementById('targetGroup');
+    const formFields = document.getElementById('formFields');
+    const jigyasuSection = document.getElementById('jigyasuSection');
+    const classWrapper = document.getElementById('classWrapper');
+    const occupationWrapper = document.getElementById('occupationWrapper');
+    const classInput = document.getElementById('class');
+    const occupationInput = document.getElementById('occupation');
+    const sewaCheckboxWrapper = document.getElementById('sewaCheckboxWrapper');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    const adminMessageArea = document.getElementById('adminMessageArea');
+
+    targetGroupSelect.addEventListener('change', () => {
+      const targetGroup = targetGroupSelect.value;
+      if (!targetGroup) {
+        formFields.classList.add('hidden');
+        sewaCheckboxWrapper.classList.add('hidden');
+        return;
+      }
+
+      formFields.classList.remove('hidden');
+      if (targetGroup && !targetGroup.includes('_Sewa')) sewaCheckboxWrapper.classList.remove('hidden');
+      else sewaCheckboxWrapper.classList.add('hidden');
+
+      if (targetGroup.includes('Student')) {
+        jigyasuSection.classList.add('hidden');
+        classWrapper.classList.remove('hidden');
+        occupationWrapper.classList.add('hidden');
+        classInput.required = true;
+        occupationInput.required = false;
+      } else {
+        jigyasuSection.classList.remove('hidden');
+        jigyasuSection.style.display = 'grid';
+        classWrapper.classList.add('hidden');
+        occupationWrapper.classList.remove('hidden');
+        classInput.required = false;
+        occupationInput.required = false;
+      }
+
+      const titleSelect = document.getElementById('title');
+      if (targetGroup.includes('JigyasuG') || targetGroup.includes('StudentB')) {
+        titleSelect.value = 'MR'; titleSelect.disabled = true;
+      } else if (targetGroup.includes('JigyasuL') || targetGroup.includes('StudentG')) {
+        titleSelect.value = 'MS'; titleSelect.disabled = true;
+      } else {
+        titleSelect.disabled = false;
+      }
+    });
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const targetGroup = targetGroupSelect.value;
+      const getValue = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+      const alsoAddToSewa = document.getElementById('addToSewa').checked;
+
+      if (!targetGroup) {
+        showRegMessage('error', 'Please select a Target Group first.');
+        return;
+      }
+
+      const studentData = {
+        title: document.getElementById('title').value,
+        firstName: getValue('firstName'), middleName: getValue('middleName'), lastName: getValue('lastName'),
+        dob: getValue('dob'),
+        fatherTitle: 'MR', fatherFirstName: getValue('fatherFirstName'),
+        fatherMiddleName: getValue('fatherMiddleName'), fatherLastName: getValue('fatherLastName'),
+        motherTitle: 'MS', motherFirstName: getValue('motherFirstName'),
+        motherMiddleName: getValue('motherMiddleName'), motherLastName: getValue('motherLastName'),
+        spouseTitle: getValue('spouseTitle'), spouseFirstName: getValue('spouseFirstName'),
+        spouseMiddleName: getValue('spouseMiddleName'), spouseLastName: getValue('spouseLastName'),
+        address1: getValue('address1'), address2: getValue('address2'), address3: getValue('address3'),
+        phone: getValue('phone'), email: getValue('email'),
+        class: getValue('class'), occupation: getValue('occupation'),
+        aadhar: getValue('aadhar')
+      };
+
+      submitBtn.disabled = true;
+      submitBtnText.classList.add('hidden');
+      submitSpinner.classList.remove('hidden');
+
+      google.script.run
+        .withSuccessHandler(response => {
+          submitBtn.disabled = false;
+          submitBtnText.classList.remove('hidden');
+          submitSpinner.classList.add('hidden');
+          showRegMessage(response.status, response.message);
+          if (response.status === 'success') {
+            form.reset();
+            sewaCheckboxWrapper.classList.add('hidden');
+            formFields.classList.add('hidden');
+          }
+        })
+        .withFailureHandler(err => {
+          submitBtn.disabled = false;
+          submitBtnText.classList.remove('hidden');
+          submitSpinner.classList.add('hidden');
+          showRegMessage('error', 'An unexpected error occurred: ' + err.message);
+        })
+        .addStudent(studentData, targetGroup, alsoAddToSewa);
+    });
+
+    function showRegMessage(type, text) {
+      adminMessageArea.className = `mt-4 text-center text-sm font-semibold p-3 rounded-md transition-opacity duration-300 ${
+        type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+      }`;
+      adminMessageArea.textContent = text;
+      adminMessageArea.classList.remove('hidden');
+      setTimeout(() => { if (adminMessageArea.textContent === text) adminMessageArea.classList.add('hidden'); }, 6000);
+    }
+
+    // ============= BACK-DATE ATTENDANCE =============
+    const attSearchTerm = document.getElementById('attSearchTerm');
+    const attSearchBtn = document.getElementById('attSearchBtn');
+    const attSearchBtnText = document.getElementById('attSearchBtnText');
+    const attSearchSpinner = document.getElementById('attSearchSpinner');
+    const attResultsArea = document.getElementById('attResultsArea');
+    const attMessageArea = document.getElementById('attMessageArea');
+    const attSearchTypeRadios = document.querySelectorAll('input[name="attSearchType"]');
+    const attTargetGroup = document.getElementById('attTargetGroup');
+
+    attSearchTypeRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.value === 'branchNo') {
+          attSearchTerm.type = 'number';
+          attSearchTerm.placeholder = 'Enter Branch No...';
+        } else {
+          attSearchTerm.type = 'text';
+          attSearchTerm.placeholder = 'Enter Name...';
+        }
+        attSearchTerm.value = '';
+        attResultsArea.innerHTML = '';
+      });
+    });
+
+    attSearchTerm.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleAttSearch(); });
+    attSearchBtn.addEventListener('click', handleAttSearch);
+
+    function showAttMessage(type, text) {
+      attMessageArea.className = `mt-4 text-center text-sm font-bold p-3 rounded-md transition-opacity duration-300 ${
+        type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 
+        type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
+        'bg-yellow-50 text-yellow-700 border border-yellow-200'
+      }`;
+      attMessageArea.textContent = text;
+      attMessageArea.classList.remove('hidden');
+      setTimeout(() => { if (attMessageArea.textContent === text) attMessageArea.classList.add('hidden'); }, 5000);
+    }
+
+    function handleAttSearch() {
+      const term = attSearchTerm.value.trim();
+      if (!term) return;
+
+      const searchType = document.querySelector('input[name="attSearchType"]:checked').value;
+      const targetGroup = attTargetGroup.value;
+      const date = attDateInput.value;
+
+      if (!targetGroup) { showAttMessage('error', 'Please select a Target Sheet above.'); return; }
+      if (!date) { showAttMessage('error', 'Please select a Date above.'); return; }
+
+      attResultsArea.innerHTML = '';
+      attMessageArea.classList.add('hidden');
+      attSearchBtn.disabled = true;
+      attSearchBtnText.classList.add('hidden');
+      attSearchSpinner.classList.remove('hidden');
+
+      google.script.run
+        .withSuccessHandler(results => {
+          attSearchBtn.disabled = false;
+          attSearchBtnText.classList.remove('hidden');
+          attSearchSpinner.classList.add('hidden');
+
+          const filtered = results.filter(r => r.targetGroup === targetGroup);
+          if (filtered && filtered.length > 0) {
+            displayAttResults(filtered, targetGroup, date);
+          } else {
+            showAttMessage('error', 'No members found in selected sheet.');
+          }
+        })
+        .withFailureHandler(err => {
+          attSearchBtn.disabled = false;
+          attSearchBtnText.classList.remove('hidden');
+          attSearchSpinner.classList.add('hidden');
+          showAttMessage('error', 'Error: ' + err.message);
+        })
+        .findStudents(term, searchType, targetGroup.includes('_Sewa') ? 'Sewa' : 'Branch');
+    }
+
+    function displayAttResults(students, targetGroup, date) {
+      students.forEach(student => {
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between gap-3 card-enter hover:bg-gray-100/70 transition-colors';
+        div.innerHTML = `
+          <div class="flex-grow">
+            <p class="font-bold text-gray-800">${escapeHtml(student.name)}</p>
+            <p class="text-xs text-gray-500">Father: ${escapeHtml(student.fatherName)}</p>
+            <p class="text-xs text-indigo-600 font-bold">Branch: #${student.branchNo}</p>
+          </div>
+          <div class="flex-shrink-0">
+            <button class="w-32 text-sm bg-green-600 text-white font-bold py-2.5 px-3 rounded-md hover:bg-green-700 flex items-center justify-center transition-all shadow-sm touch-btn" onclick="markBackDateAtt(this, '${student.branchNo}', '${targetGroup}', '${date}', '${escapeHtml(student.name)}')">
+                <span class="btn-text">Mark Present</span>
+                <div class="spinner hidden"></div>
+            </button>
+          </div>
+        `;
+        attResultsArea.appendChild(div);
+      });
+    }
+
+    function markBackDateAtt(btn, branchNo, targetGroup, date, studentName) {
+      const textEl = btn.querySelector('.btn-text');
+      const spinnerEl = btn.querySelector('.spinner');
+
+      btn.disabled = true;
+      textEl.classList.add('hidden');
+      spinnerEl.classList.remove('hidden');
+
+      google.script.run
+        .withSuccessHandler(status => {
+          textEl.classList.remove('hidden');
+          spinnerEl.classList.add('hidden');
+          if (status === 'SUCCESS') {
+            btn.className = "w-32 text-sm bg-gray-400 text-white font-bold py-2.5 px-3 rounded-md cursor-not-allowed flex items-center justify-center";
+            textEl.textContent = 'Queued';
+            showAttMessage('success', `✓ Marked ${branchNo} (${studentName}) for ${date}`);
+          } else if (status === 'DUPLICATE') {
+            btn.className = "w-32 text-sm bg-gray-400 text-white font-bold py-2.5 px-3 rounded-md cursor-not-allowed flex items-center justify-center";
+            textEl.textContent = 'Already Marked';
+            showAttMessage('warning', `Duplicate: ${branchNo} is already marked on ${date}`);
+          } else {
+            btn.disabled = false;
+            showAttMessage('error', `Error for ${branchNo}. Try again.`);
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          textEl.classList.remove('hidden');
+          spinnerEl.classList.add('hidden');
+          showAttMessage('error', `Network Error. Try again.`);
+        })
+        .markPresent({ branchNo: branchNo, date: date, markedBy: 'Admin' }, targetGroup);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Student Attendance</title>
+
+  <!-- PWA Manifest Data URI -->
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Adanbagh%20Attendance%22%2C%22short_name%22%3A%22Attendance%22%2C%22start_url%22%3A%22%3Fpage%3Dindex%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fffbeb%22%2C%22theme_color%22%3A%22%234F46E5%22%7D">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #fffbeb; -webkit-tap-highlight-color: transparent; }
+    .card-enter { animation: card-enter 0.4s ease-out; }
+    @keyframes card-enter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .spinner { border: 4px solid rgba(255,255,255,.3); width: 20px; height: 20px; border-radius: 50%; border-left-color: #fff; animation: spin 0.9s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .toggle-radio { display: none; }
+    .toggle-label {
+      position: relative; display: inline-block; padding: 0.65rem 1.25rem; cursor: pointer;
+      border: 1px solid #D1D5DB; color: #374151; transition: all 0.2s ease;
+      font-size: 0.875rem; font-weight: 600; user-select: none;
+    }
+    .toggle-label:first-of-type { border-radius: 0.375rem 0 0 0.375rem; }
+    .toggle-label:last-of-type { border-radius: 0 0.375rem 0.375rem 0; }
+    .toggle-label:not(:first-of-type) { margin-left: -1px; }
+    .toggle-radio:checked + .toggle-label {
+      background-color: #4F46E5; color: white; border-color: #4F46E5; z-index: 10;
+      box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+    }
+    .toggle-radio:focus + .toggle-label { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4); }
+
+    .step-transition { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+    
+    /* Touch tactile active feedback */
+    button:active, .touch-btn:active { transform: scale(0.97); }
+
+    /* Hide standard number spinners */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+
+  <div id="app" class="relative w-full max-w-xl m-2 sm:m-4">
+
+    <!-- PWA Install Banner -->
+    <div id="pwaBanner" class="hidden mb-3 p-3 bg-yellow-100 border border-yellow-300 rounded-lg shadow-sm flex items-center justify-between card-enter">
+      <div class="flex items-center space-x-2 text-xs font-semibold text-yellow-900">
+        <span>📲</span>
+        <span>Install App on your phone home screen</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="pwaInstallBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded shadow-sm transition-colors">Install</button>
+        <button id="pwaDismissBtn" class="text-yellow-700 hover:text-yellow-900 text-xs px-1.5 py-1">✕</button>
+      </div>
+    </div>
+
+    <!-- MAIN CARD -->
+    <div class="card-enter bg-white rounded-lg shadow-xl overflow-hidden border-t-8 border-yellow-400">
+      
+      <!-- HEADER -->
+      <div class="text-center p-6 bg-gray-50 relative border-b border-gray-100">
+        
+        <!-- Navigation Links -->
+        <div class="absolute top-4 right-4 flex items-center space-x-2 z-30">
+          <a href="#" id="infoLink" title="Member Info" class="text-gray-500 hover:text-indigo-600 p-1.5 bg-white rounded-md shadow-sm border border-gray-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </a>
+          <a href="#" id="adminLink" title="Admin Panel" class="text-gray-500 hover:text-indigo-600 p-1.5 bg-white rounded-md shadow-sm border border-gray-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.966-.35 2.141-.948 2.286-1.56.38-1.56 2.6 0 2.98.6.145 1.488 1.32 1.028 2.286-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.286-.948c.38 1.56 2.6 1.56 2.98 0 .6-.145 1.488-1.32 1.028-2.286.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.286.948c-.38-1.56-2.6-1.56-2.98 0zM10 5a5 5 0 100 10 5 5 0 000-10zM10 8a2 2 0 100 4 2 2 0 000-4z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        </div>
+        
+        <div id="dateTime" class="text-sm font-semibold text-indigo-700 bg-white px-3 py-1.5 rounded-md shadow-sm border border-gray-200 inline-block mb-3">
+          --:-- --
+        </div>
+        
+        <h1 class="text-2xl font-bold text-gray-800">Adanbagh Branch</h1>
+        <h2 class="text-3xl font-bold text-indigo-700 mt-1">Attendance</h2>
+        <p class="text-sm text-gray-500 mt-2 tracking-widest uppercase">Ra-Dha-Sva-Aah-Mi</p>
+
+        <!-- Volunteer Tag -->
+        <div class="mt-3 text-xs text-gray-500">
+          Volunteer: <button type="button" id="changeVolunteerBtn" class="font-bold text-indigo-700 hover:underline cursor-pointer"><span id="currentVolunteerName">Tap to set</span></button>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE TYPE TOGGLE (Heading removed, exact original buttons preserved) -->
+      <div class="p-5 bg-gray-50 border-t border-b flex justify-center items-center">
+        <div class="flex justify-center" role="radiogroup">
+          <input type="radio" name="attendanceType" id="typeBranch" class="toggle-radio" value="Branch" checked>
+          <label for="typeBranch" class="toggle-label hover:bg-gray-100">Branch Attendance</label>
+          
+          <input type="radio" name="attendanceType" id="typeSewa" class="toggle-radio" value="Sewa">
+          <label for="typeSewa" class="toggle-label hover:bg-gray-100">Sewa Attendance</label>
+        </div>
+      </div>
+
+      <!-- SEARCH SECTION (Fully dynamic, no group selection required) -->
+      <div id="searchSection" class="p-6 md:p-8 space-y-6">
+        <fieldset>
+          <div class="flex items-center justify-center space-x-6">
+            <input id="searchTypeBranch" name="searchType" type="radio" value="branchNo" checked class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+            <label for="searchTypeBranch" class="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">Branch No.</label>
+            <input id="searchTypeName" name="searchType" type="radio" value="name" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+            <label for="searchTypeName" class="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">Name</label>
+          </div>
+        </fieldset>
+
+        <div class="flex rounded-md shadow-sm">
+          <input 
+            type="number" 
+            id="searchTerm" 
+            placeholder="Enter Branch No..." 
+            autocomplete="off"
+            class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg outline-none"
+          >
+          <button id="lookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-indigo-600 text-white font-semibold rounded-r-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+            <span id="lookupBtnText">Search</span>
+            <div id="lookupSpinner" class="spinner hidden"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- RESULTS AREA -->
+      <div id="resultsArea" class="px-6 md:px-8 pb-6 space-y-3"></div>
+
+      <!-- MESSAGE AREA -->
+      <div id="messageArea" class="px-6 pb-6 text-center text-sm font-medium"></div>
+
+      <!-- SESSION COUNTER -->
+      <div class="pb-4 text-center text-xs text-gray-500 border-t pt-3">
+        Marked in this session: <strong id="sessionCounter" class="text-indigo-700">0</strong>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VOLUNTEER SELECTION MODAL -->
+  <div id="volunteerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 card-enter">
+    <div class="bg-white w-full max-w-sm rounded-lg p-5 space-y-4 shadow-xl border-t-4 border-indigo-600">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-bold text-gray-800 text-base">Select Active Volunteer</h3>
+        <button type="button" id="closeVolunteerModal" class="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
+      </div>
+      <p class="text-xs text-gray-500">Choose your email/name to be recorded with attendance markings:</p>
+      
+      <div id="volunteerListContainer" class="space-y-2 max-h-48 overflow-y-auto"></div>
+
+      <div class="pt-2 border-t">
+        <label class="block text-xs font-medium text-gray-600 mb-1">Or enter name/email manually:</label>
+        <div class="flex space-x-2">
+          <input type="text" id="customVolunteerInput" placeholder="e.g. Mohan Sharma" class="flex-1 px-3 py-1.5 text-sm border rounded outline-none focus:border-indigo-500">
+          <button type="button" id="saveCustomVolunteerBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded text-xs">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let scriptUrl = null;
+    let selectedAttendanceType = 'Branch'; // Defaults to Branch Attendance
+    let currentVolunteer = localStorage.getItem('adanbagh_volunteer') || '';
+    let sessionCount = 0;
+    let deferredPrompt = null;
+    let cachedVolunteers = [];
+
+    // DOM Elements
+    const adminLink = document.getElementById('adminLink');
+    const infoLink = document.getElementById('infoLink');
+    const dateTimeElement = document.getElementById('dateTime');
+    const attendanceTypeRadios = document.querySelectorAll('input[name="attendanceType"]');
+    const searchTermInput = document.getElementById('searchTerm');
+    const lookupBtn = document.getElementById('lookupBtn');
+    const lookupBtnText = document.getElementById('lookupBtnText');
+    const lookupSpinner = document.getElementById('lookupSpinner');
+    const searchTypeRadios = document.querySelectorAll('input[name="searchType"]');
+    const searchTypeBranchRadio = document.getElementById('searchTypeBranch');
+    const resultsArea = document.getElementById('resultsArea');
+    const messageArea = document.getElementById('messageArea');
+    const sessionCounter = document.getElementById('sessionCounter');
+
+    // Volunteer elements
+    const currentVolunteerName = document.getElementById('currentVolunteerName');
+    const changeVolunteerBtn = document.getElementById('changeVolunteerBtn');
+    const volunteerModal = document.getElementById('volunteerModal');
+    const closeVolunteerModal = document.getElementById('closeVolunteerModal');
+    const volunteerListContainer = document.getElementById('volunteerListContainer');
+    const customVolunteerInput = document.getElementById('customVolunteerInput');
+    const saveCustomVolunteerBtn = document.getElementById('saveCustomVolunteerBtn');
+
+    // PWA elements
+    const pwaBanner = document.getElementById('pwaBanner');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+    const pwaDismissBtn = document.getElementById('pwaDismissBtn');
+
+    // Initialization
+    window.addEventListener('load', initialize);
+
+    function initialize() {
+      // 1. Get script URL for links
+      google.script.run
+        .withSuccessHandler(url => { 
+          scriptUrl = url;
+          if (adminLink) adminLink.href = `${scriptUrl}?page=admin`;
+          if (infoLink) infoLink.href = `${scriptUrl}?page=info`;
+        })
+        .getScriptUrl();
+
+      // 2. Setup volunteer identity
+      updateVolunteerDisplay();
+      loadVolunteersList();
+
+      // 3. Event Listeners
+      searchTermInput.addEventListener('keyup', e => e.key === 'Enter' && handleSearch());
+      lookupBtn.addEventListener('click', handleSearch);
+      
+      attendanceTypeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedAttendanceType = e.target.value;
+          handleSelectionChange();
+        });
+      });
+
+      searchTypeRadios.forEach(radio => radio.addEventListener('change', handleSearchTypeChange));
+
+      changeVolunteerBtn.addEventListener('click', () => volunteerModal.classList.remove('hidden'));
+      closeVolunteerModal.addEventListener('click', () => volunteerModal.classList.add('hidden'));
+      saveCustomVolunteerBtn.addEventListener('click', saveCustomVolunteer);
+
+      // 4. Background cache warmup
+      google.script.run.warmUpCache();
+
+      // 5. Clock
+      updateDateTime();
+      setInterval(updateDateTime, 30000);
+
+      // 6. PWA install capture
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (pwaBanner) pwaBanner.classList.remove('hidden');
+      });
+
+      if (pwaInstallBtn) {
+        pwaInstallBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            if (outcome === 'accepted' && pwaBanner) pwaBanner.classList.add('hidden');
+          }
+        });
+      }
+
+      if (pwaDismissBtn) {
+        pwaDismissBtn.addEventListener('click', () => pwaBanner.classList.add('hidden'));
+      }
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const timeOptions = { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: 'numeric', hour12: true };
+      const dateOptions = { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' };
+      const timeString = now.toLocaleString('en-US', timeOptions);
+      const dateString = now.toLocaleString('en-GB', dateOptions);
+      if (dateTimeElement) {
+        dateTimeElement.textContent = `${dateString}  |  ${timeString} IST`;
+      }
+    }
+
+    function handleSelectionChange() {
+      resultsArea.innerHTML = '';
+      messageArea.textContent = '';
+      searchTermInput.value = '';
+      searchTermInput.focus();
+    }
+
+    function handleSearchTypeChange() {
+      if (searchTypeBranchRadio.checked) {
+        searchTermInput.type = 'number';
+        searchTermInput.placeholder = 'Enter Branch No...';
+      } else {
+        searchTermInput.type = 'text';
+        searchTermInput.placeholder = 'Enter Name...';
+      }
+      handleSelectionChange();
+    }
+
+    function showMessage(type, text) {
+      messageArea.className = `px-6 pb-6 text-center text-sm font-medium transition-opacity duration-300 ${
+        type === 'success' ? 'text-green-600' : type === 'error' ? 'text-red-600' : 'text-yellow-600'
+      }`;
+      messageArea.textContent = text;
+      setTimeout(() => { 
+        if (messageArea && messageArea.textContent === text) {
+          messageArea.textContent = '';
+        }
+      }, 5000);
+    }
+
+    function toggleLoading(btn, textEl, spinnerEl, isLoading) {
+      if (btn) btn.disabled = isLoading;
+      if (textEl) textEl.classList.toggle('hidden', isLoading);
+      if (spinnerEl) spinnerEl.classList.toggle('hidden', !isLoading);
+    }
+
+    // ============= UNIFIED MULTI-SHEET SEARCH =============
+    function handleSearch() {
+      const searchTerm = searchTermInput.value.trim();
+      if (!searchTerm) return;
+      const searchType = document.querySelector('input[name="searchType"]:checked').value;
+
+      resultsArea.innerHTML = '';
+      messageArea.textContent = '';
+      toggleLoading(lookupBtn, lookupBtnText, lookupSpinner, true);
+
+      google.script.run
+        .withSuccessHandler(results => {
+          toggleLoading(lookupBtn, lookupBtnText, lookupSpinner, false);
+          if (results && results.length > 0) {
+            displayResults(results);
+          } else {
+            showMessage('error', `No members found matching "${searchTerm}" in ${selectedAttendanceType} records.`);
+          }
+        })
+        .withFailureHandler(err => {
+          toggleLoading(lookupBtn, lookupBtnText, lookupSpinner, false);
+          showMessage('error', 'An error occurred: ' + err.message);
+        })
+        .findStudents(searchTerm, searchType, selectedAttendanceType);
+    }
+
+    function displayResults(students) {
+      resultsArea.innerHTML = ''; 
+      students.forEach(student => {
+        // Tag styles
+        let tagClass = "bg-gray-100 text-gray-700 border-gray-200";
+        if (student.color === 'blue') tagClass = "bg-blue-100 text-blue-800 border-blue-200";
+        else if (student.color === 'purple') tagClass = "bg-purple-100 text-purple-800 border-purple-200";
+        else if (student.color === 'emerald') tagClass = "bg-green-100 text-green-800 border-green-200";
+        else if (student.color === 'amber') tagClass = "bg-amber-100 text-amber-800 border-amber-200";
+
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-gray-50 rounded-lg border flex items-center justify-between gap-3 card-enter hover:bg-gray-100/70 transition-colors';
+        div.innerHTML = `
+          <div class="flex-grow">
+            <div class="flex items-center space-x-2 flex-wrap">
+              <p class="font-semibold text-gray-800">${escapeHtml(student.name)}</p>
+              <span class="text-xs font-bold px-2 py-0.5 rounded border ${tagClass}">${student.categoryLabel}</span>
+            </div>
+            <p class="text-sm text-gray-600">Father: ${escapeHtml(student.fatherName)}</p>
+            <p class="text-sm text-gray-500">DOB: ${student.dob} | Branch: <span class="font-bold text-indigo-700">${student.branchNo}</span></p>
+          </div>
+          <div class="flex-shrink-0">
+            <button id="markBtn_${student.branchNo}_${student.targetGroup}" class="w-24 text-sm bg-green-600 text-white font-medium py-2.5 px-4 rounded-md hover:bg-green-700 flex items-center justify-center transition-all shadow-sm" onclick="handleMarkPresent(this, '${student.branchNo}', '${student.targetGroup}', '${escapeHtml(student.name)}')">
+                <span class="btn-text">Present</span><span class="spinner hidden"></span>
+            </button>
+          </div>
+        `;
+        resultsArea.appendChild(div);
+      });
+    }
+
+    // ============= ATTENDANCE MARKING =============
+    function handleMarkPresent(button, branchNo, targetGroup, studentName) {
+      const textEl = button.querySelector('.btn-text');
+      const spinnerEl = button.querySelector('.spinner');
+      toggleLoading(button, textEl, spinnerEl, true);
+
+      // Mobile haptic vibration if supported
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(40);
+      }
+
+      const payload = {
+        branchNo: branchNo,
+        markedBy: currentVolunteer || 'Volunteer'
+      };
+
+      google.script.run
+        .withSuccessHandler(status => {
+          toggleLoading(button, textEl, spinnerEl, false);
+          if (status === 'SUCCESS') {
+            showMessage('success', `✓ Marked ${branchNo} (${studentName})`);
+            button.disabled = true;
+            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+            button.classList.add('bg-gray-400', 'cursor-not-allowed');
+            textEl.textContent = 'Marked';
+            sessionCount++;
+            sessionCounter.textContent = sessionCount;
+          } else if (status === 'DUPLICATE') {
+            showMessage('warning', `Duplicate: ${branchNo} already marked or in queue`);
+            button.disabled = true;
+            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+            button.classList.add('bg-gray-400', 'cursor-not-allowed');
+            textEl.textContent = 'Marked';
+          } else {
+            showMessage('error', `Error for ${branchNo}. Try again.`);
+          }
+        })
+        .withFailureHandler(err => {
+          toggleLoading(button, textEl, spinnerEl, false);
+          showMessage('error', `Network Error for ${branchNo}. NOT MARKED. Try again.`);
+        })
+        .markPresent(payload, targetGroup);
+    }
+
+    // ============= VOLUNTEER IDENTITY =============
+    function updateVolunteerDisplay() {
+      if (currentVolunteer) {
+        const short = currentVolunteer.includes('@') ? currentVolunteer.split('@')[0] : currentVolunteer;
+        currentVolunteerName.textContent = short;
+      } else {
+        currentVolunteerName.textContent = 'Tap to set';
+      }
+    }
+
+    function loadVolunteersList() {
+      google.script.run
+        .withSuccessHandler(list => {
+          cachedVolunteers = list || [];
+          renderVolunteerList(cachedVolunteers);
+        })
+        .getVolunteersList();
+    }
+
+    function renderVolunteerList(list) {
+      volunteerListContainer.innerHTML = '';
+      if (!list || list.length === 0) {
+        volunteerListContainer.innerHTML = '<p class="text-xs text-gray-400">No preset volunteers found. Enter manually below.</p>';
+        return;
+      }
+
+      list.forEach(email => {
+        const isCurrent = (email === currentVolunteer);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-full text-left p-2 rounded text-xs font-medium border flex items-center justify-between transition-colors ${
+          isCurrent ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+        }`;
+        btn.innerHTML = `<span>${escapeHtml(email)}</span>${isCurrent ? '<span class="text-indigo-600">✓ Active</span>' : ''}`;
+        btn.onclick = () => {
+          setVolunteer(email);
+          volunteerModal.classList.add('hidden');
+        };
+        volunteerListContainer.appendChild(btn);
+      });
+    }
+
+    function saveCustomVolunteer() {
+      const val = customVolunteerInput.value.trim();
+      if (!val) return;
+      setVolunteer(val);
+      customVolunteerInput.value = '';
+      volunteerModal.classList.add('hidden');
+    }
+
+    function setVolunteer(val) {
+      currentVolunteer = val;
+      localStorage.setItem('adanbagh_volunteer', val);
+      updateVolunteerDisplay();
+      showMessage('success', `Volunteer set to: ${val}`);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

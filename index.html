@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Adanbagh Attendance - Dayalbagh</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f59e0b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Attendance">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #fffbeb;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #app-container {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-color: #fffbeb;
+    }
+
+    /* Top Accent Line (Dayalbagh Yellow) */
+    .top-accent-bar {
+      height: 4px;
+      width: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    /* Fullscreen Iframe */
+    #portal-frame {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      display: block;
+      background-color: #fffbeb;
+      z-index: 10;
+    }
+
+    /* Splash Screen */
+    #splash-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fffbeb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      transition: opacity 0.4s ease-out, visibility 0.4s;
+      padding: 24px;
+      text-align: center;
+    }
+
+    #splash-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-card {
+      background: #ffffff;
+      border: 1px solid #fef3c7;
+      border-top: 6px solid #f59e0b;
+      border-radius: 20px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15), 0 8px 10px -6px rgba(217, 119, 6, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .splash-logo {
+      width: 76px;
+      height: 76px;
+      border-radius: 18px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+      margin-bottom: 20px;
+      object-fit: cover;
+    }
+
+    .splash-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #78350f;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .splash-sub {
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #fef3c7;
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .splash-status {
+      font-size: 13px;
+      color: #b45309;
+      font-weight: 500;
+    }
+
+    /* PWA Install Banner */
+    #install-banner {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #fde68a;
+      border-left: 6px solid #f59e0b;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 1000;
+      animation: slideUp 0.35s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .banner-text-box {
+      flex: 1;
+    }
+
+    .banner-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #78350f;
+      line-height: 1.2;
+    }
+
+    .banner-sub {
+      font-size: 12px;
+      color: #92400e;
+      margin-top: 2px;
+    }
+
+    .banner-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .install-action-btn {
+      background: #f59e0b;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+      white-space: nowrap;
+    }
+
+    .install-action-btn:active {
+      transform: scale(0.96);
+      background: #d97706;
+    }
+
+    .close-banner-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    /* Floating Utilities */
+    .floating-bar {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      display: flex;
+      gap: 8px;
+      z-index: 200;
+    }
+
+    .floating-btn {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #fde68a;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #92400e;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+
+    .floating-btn:active {
+      transform: scale(0.9);
+      background: #fef3c7;
+    }
+
+    /* URL Config Modal (Shown only if no URL configured) */
+    #config-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(3px);
+    }
+
+    .config-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      border-top: 6px solid #f59e0b;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .config-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+
+    .config-input:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+
+    .config-submit-btn {
+      width: 100%;
+      background: #f59e0b;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <div class="top-accent-bar"></div>
+    
+    <!-- Fullscreen Sandboxed App Iframe -->
+    <iframe id="portal-frame" allow="geolocation; camera; microphone" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals"></iframe>
+  </div>
+
+  <!-- Satsang Splash Loading Screen -->
+  <div id="splash-screen">
+    <div class="splash-card">
+      <img src="icon-192.png" alt="Logo" class="splash-logo">
+      <h1 class="splash-title">Ra-Dha-Sva-Aah-Mi</h1>
+      <h2 class="splash-sub">Dayalbagh • Adanbagh Branch</h2>
+      <div class="spinner"></div>
+      <p class="splash-status" id="status-text">Loading Attendance Portal...</p>
+    </div>
+  </div>
+
+  <!-- PWA Install Banner (Triggered automatically on Android Chrome) -->
+  <div id="install-banner">
+    <div class="banner-text-box">
+      <div class="banner-title">📲 Install Adanbagh App</div>
+      <div class="banner-sub">Install on phone for 1-tap full-screen access</div>
+    </div>
+    <div class="banner-btn-group">
+      <button class="install-action-btn" id="install-btn">Install</button>
+      <button class="close-banner-btn" id="dismiss-banner">&times;</button>
+    </div>
+  </div>
+
+  <!-- Floating Utility: Quick Reload -->
+  <div class="floating-bar">
+    <button class="floating-btn" id="refresh-btn" title="Reload App">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+      </svg>
+    </button>
+    <button class="floating-btn" id="settings-btn" title="Script Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Settings / URL Setup Modal -->
+  <div id="config-modal">
+    <div class="config-card">
+      <h3 style="color: #78350f; font-size: 17px; font-weight: 700;">Google Apps Script URL</h3>
+      <p style="color: #6b7280; font-size: 13px; margin-top: 6px;">
+        Paste your Google Apps Script Web App Deployment URL ending in <code>/exec</code>:
+      </p>
+      <input type="url" id="script-url-input" class="config-input" placeholder="https://script.google.com/macros/s/.../exec">
+      <button class="config-submit-btn" id="save-url-btn">Save & Open App</button>
+      <button onclick="document.getElementById('config-modal').style.display='none'" style="width: 100%; margin-top: 8px; background: transparent; border: none; color: #6b7280; font-size: 13px; padding: 6px; cursor: pointer;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // ================= CONFIGURATION =================
+    // You can hardcode your Google Apps Script Web App URL here:
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqo7fW92E6w6rFz2_kU-sU3M58b5Hj-E3a_example/exec";
+    const STORAGE_KEY = 'ADANBAGH_APPS_SCRIPT_URL';
+
+    function getActiveScriptUrl() {
+      // 1. Check URL query parameters (?scriptUrl=...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryUrl = urlParams.get('scriptUrl');
+      if (queryUrl) return queryUrl;
+
+      // 2. Check localStorage
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && saved.trim() !== '') return saved;
+
+      // 3. Fallback to default
+      return DEFAULT_SCRIPT_URL;
+    }
+
+    function initPortal() {
+      const frame = document.getElementById('portal-frame');
+      const splash = document.getElementById('splash-screen');
+      const statusText = document.getElementById('status-text');
+
+      let targetUrl = getActiveScriptUrl();
+
+      // If user hasn't configured URL and it's the placeholder example
+      if (!targetUrl || targetUrl.includes('example')) {
+        document.getElementById('config-modal').style.display = 'flex';
+        statusText.textContent = "Please configure your Apps Script URL...";
+        return;
+      }
+
+      // Check if page parameter was forwarded (?page=info or ?page=admin)
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = urlParams.get('page');
+      if (page) {
+        targetUrl += (targetUrl.includes('?') ? '&' : '?') + 'page=' + encodeURIComponent(page);
+      }
+
+      statusText.textContent = "Opening Attendance Portal...";
+      frame.src = targetUrl;
+
+      // Handle load event
+      frame.onload = function() {
+        setTimeout(() => {
+          splash.classList.add('fade-out');
+        }, 300);
+      };
+
+      // Safety timeout in case slow network
+      setTimeout(() => {
+        splash.classList.add('fade-out');
+      }, 5000);
+    }
+
+    // Refresh Button
+    document.getElementById('refresh-btn').addEventListener('click', function() {
+      const splash = document.getElementById('splash-screen');
+      const statusText = document.getElementById('status-text');
+      splash.classList.remove('fade-out');
+      statusText.textContent = "Reloading portal...";
+      const frame = document.getElementById('portal-frame');
+      frame.src = frame.src;
+    });
+
+    // Settings Button
+    document.getElementById('settings-btn').addEventListener('click', function() {
+      const current = localStorage.getItem(STORAGE_KEY) || DEFAULT_SCRIPT_URL;
+      document.getElementById('script-url-input').value = current.includes('example') ? '' : current;
+      document.getElementById('config-modal').style.display = 'flex';
+    });
+
+    // Save URL Button
+    document.getElementById('save-url-btn').addEventListener('click', function() {
+      const val = document.getElementById('script-url-input').value.trim();
+      if (!val || !val.startsWith('http')) {
+        alert('Please enter a valid Google Apps Script Web App URL starting with https://');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, val);
+      document.getElementById('config-modal').style.display = 'none';
+      initPortal();
+    });
+
+    // ================= PWA INSTALLATION PROMPT =================
+    let deferredPrompt = null;
+    const installBanner = document.getElementById('install-banner');
+    const installBtn = document.getElementById('install-btn');
+    const dismissBtn = document.getElementById('dismiss-banner');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent automatic mini-infobar in Chrome
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show custom install banner
+      installBanner.style.display = 'flex';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      installBanner.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to install: ${outcome}`);
+      deferredPrompt = null;
+    });
+
+    dismissBtn.addEventListener('click', () => {
+      installBanner.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installBanner.style.display = 'none';
+      deferredPrompt = null;
+      console.log('Adanbagh Attendance PWA installed successfully!');
+    });
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('ServiceWorker registered:', reg.scope))
+          .catch((err) => console.log('ServiceWorker registration failed:', err));
+      });
+    }
+
+    // Launch Portal
+    initPortal();
+  </script>
+</body>
+</html>

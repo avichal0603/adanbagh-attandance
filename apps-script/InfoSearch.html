@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4F46E5">
+  <title>Member Info - Adanbagh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #fffbeb; -webkit-tap-highlight-color: transparent; }
+    
+    .card-enter { animation: card-enter 0.4s ease-out; }
+    @keyframes card-enter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .spinner { border: 4px solid rgba(255,255,255,.3); width: 20px; height: 20px; border-radius: 50%; border-left-color: #fff; animation: spin 0.9s linear infinite; }
+    .page-spinner { border: 4px solid rgba(79, 70, 229, 0.2); width: 36px; height: 36px; border-radius: 50%; border-left-color: #4f46e5; animation: spin 0.9s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    button:active, .touch-btn:active { transform: scale(0.97); }
+
+    .detail-item { 
+      padding: 0.65rem 0.5rem; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 1px solid #F3F4F6;
+      border-radius: 0.375rem;
+      transition: background-color 0.15s ease;
+    }
+    .detail-item:hover { background-color: #F8FAFC; }
+    .detail-key { font-weight: 500; color: #4B5563; font-size: 0.875rem; }
+    .detail-value { color: #111827; text-align: right; font-weight: 600; font-size: 0.925rem; }
+    .detail-section { font-size: 1.1rem; font-weight: 700; color: #4338CA; margin-bottom: 0.5rem; border-bottom: 2px solid #E0E7FF; padding-bottom: 0.5rem; }
+
+    /* Hide standard number spinners */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-8">
+
+  <div class="relative w-full max-w-4xl m-2 sm:m-4 space-y-4">
+    
+    <!-- MAIN SEARCH CARD -->
+    <div class="card-enter bg-white rounded-lg shadow-xl overflow-hidden border-t-8 border-yellow-400">
+      
+      <!-- HEADER -->
+      <div class="text-center p-6 bg-gray-50 relative border-b border-gray-100">
+        
+        <!-- Back to Attendance Link -->
+        <a href="#" id="homeLink" title="Back to Attendance" class="absolute top-4 right-4 text-gray-500 hover:text-indigo-600 p-1.5 bg-white rounded-md shadow-sm border border-gray-200 transition-all hover:shadow">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </a>
+
+        <h1 class="text-2xl font-bold text-gray-800">Adanbagh Branch</h1>
+        <h2 class="text-3xl font-bold text-indigo-700 mt-1">Member Information</h2>
+        <p class="text-sm text-gray-500 mt-2 tracking-widest uppercase">Ra-Dha-Sva-Aah-Mi</p>
+      </div>
+
+      <!-- SEARCH CONTROLS -->
+      <div class="p-6 md:p-8 space-y-6">
+        
+        <!-- Search Type Radio -->
+        <fieldset>
+          <div class="flex items-center justify-center space-x-6">
+            <input id="searchTypeBranch" name="searchType" type="radio" value="branchNo" checked class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+            <label for="searchTypeBranch" class="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">Branch No.</label>
+            <input id="searchTypeName" name="searchType" type="radio" value="name" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+            <label for="searchTypeName" class="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">Name</label>
+          </div>
+        </fieldset>
+
+        <!-- Search Input & Button -->
+        <div class="flex rounded-md shadow-sm">
+          <input 
+            type="number" 
+            id="searchInput" 
+            placeholder="Enter Branch No (e.g. 10001, 30)..." 
+            autocomplete="off"
+            class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg outline-none"
+          >
+          <button id="lookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-indigo-600 text-white font-semibold rounded-r-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+            <span id="lookupBtnText">Search</span>
+            <div id="lookupSpinner" class="spinner hidden"></div>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RESULTS LIST AREA -->
+      <div id="resultsArea" class="px-6 md:px-8 pb-6 space-y-3"></div>
+      <div id="messageArea" class="px-6 pb-6 text-center text-sm font-medium"></div>
+
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="hidden text-center py-8">
+      <div class="page-spinner mx-auto"></div>
+      <p class="mt-3 text-sm font-semibold text-gray-600">Loading member profile & stats...</p>
+    </div>
+
+    <!-- MEMBER DETAILS CARD -->
+    <div id="content" class="hidden card-enter bg-white rounded-lg shadow-xl overflow-hidden border-t-8 border-yellow-400">
+      
+      <!-- Profile Header -->
+      <div class="p-6 bg-gray-50 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div>
+            <h1 id="studentName" class="text-3xl font-bold text-indigo-700"></h1>
+            <p class="text-xs text-gray-500 mt-1">Branch No: <strong id="branchNoHeader" class="text-gray-800 text-sm"></strong></p>
+          </div>
+          <div class="flex items-center space-x-3 text-sm">
+            <span class="bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full text-xs">
+              Age: <span id="studentAge"></span>
+            </span>
+            <span class="bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full text-xs">
+              D.O.R: <span id="studentDOR"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3">
+        
+        <!-- Personal & Family Information (2 Columns on Desktop) -->
+        <div class="lg:col-span-2 p-6 space-y-6">
+          <div>
+            <h2 class="detail-section">Personal Details</h2>
+            <div id="personal-details" class="divide-y divide-gray-100"></div>
+          </div>
+
+          <div>
+            <h2 class="detail-section">Parental & Family Details</h2>
+            <div id="parent-details" class="divide-y divide-gray-100"></div>
+          </div>
+
+          <div>
+            <h2 class="detail-section">Contact & Other Info</h2>
+            <div id="contact-details" class="divide-y divide-gray-100"></div>
+          </div>
+        </div>
+
+        <!-- Attendance Stats Column (1 Column on Desktop) -->
+        <div class="lg:col-span-1 bg-yellow-50/40 p-6 space-y-6 border-t lg:border-t-0 lg:border-l border-gray-200">
+          
+          <!-- Satsang Attendance Stats -->
+          <div class="bg-white p-4 rounded-lg shadow-sm border border-yellow-200 text-center space-y-3">
+            <h3 class="text-sm font-bold text-indigo-700 uppercase tracking-wider">Satsang Attendance</h3>
+            <div class="space-y-2">
+              <div class="bg-indigo-50 text-indigo-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Present</p>
+                <p id="satsang_present" class="text-3xl font-extrabold"></p>
+              </div>
+              <div class="bg-gray-100 text-gray-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Sundays</p>
+                <p id="satsang_total" class="text-3xl font-extrabold"></p>
+              </div>
+              <div class="bg-green-100 text-green-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-green-700">Percentage</p>
+                <p id="satsang_percentage" class="text-3xl font-extrabold"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sewa Attendance Stats -->
+          <div class="bg-white p-4 rounded-lg shadow-sm border border-yellow-200 text-center space-y-3">
+            <h3 class="text-sm font-bold text-indigo-700 uppercase tracking-wider">Sewa Attendance</h3>
+            <div class="space-y-2">
+              <div class="bg-indigo-50 text-indigo-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Present</p>
+                <p id="sewa_present" class="text-3xl font-extrabold"></p>
+              </div>
+              <div class="bg-gray-100 text-gray-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Sundays</p>
+                <p id="sewa_total" class="text-3xl font-extrabold"></p>
+              </div>
+              <div class="bg-green-100 text-green-800 p-2.5 rounded-md">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-green-700">Percentage</p>
+                <p id="sewa_percentage" class="text-3xl font-extrabold"></p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const homeLink = document.getElementById('homeLink');
+    const lookupBtn = document.getElementById('lookupBtn');
+    const lookupBtnText = document.getElementById('lookupBtnText');
+    const lookupSpinner = document.getElementById('lookupSpinner');
+    const searchInput = document.getElementById('searchInput');
+    const searchTypeRadios = document.querySelectorAll('input[name="searchType"]');
+    const searchTypeBranchRadio = document.getElementById('searchTypeBranch');
+    
+    const resultsArea = document.getElementById('resultsArea');
+    const messageArea = document.getElementById('messageArea');
+    const loader = document.getElementById('loader');
+    const content = document.getElementById('content');
+
+    window.addEventListener('load', () => {
+      google.script.run.withSuccessHandler(url => {
+        if (homeLink) homeLink.href = url;
+      }).getScriptUrl();
+
+      lookupBtn.addEventListener('click', handleSearch);
+      searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') handleSearch(); });
+      searchTypeRadios.forEach(radio => radio.addEventListener('change', handleSearchTypeChange));
+    });
+
+    function handleSearchTypeChange() {
+      if (searchTypeBranchRadio.checked) {
+        searchInput.type = 'number';
+        searchInput.placeholder = 'Enter Branch No...';
+      } else {
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Enter Name...';
+      }
+      searchInput.value = '';
+      resultsArea.innerHTML = '';
+      content.classList.add('hidden');
+    }
+
+    function toggleLoading(isLoading) {
+      lookupBtn.disabled = isLoading;
+      lookupBtnText.classList.toggle('hidden', isLoading);
+      lookupSpinner.classList.toggle('hidden', !isLoading);
+    }
+
+    function showMessage(type, text) {
+      messageArea.className = `px-6 pb-6 text-center text-sm font-medium transition-opacity duration-300 ${
+        type === 'success' ? 'text-green-600' : type === 'error' ? 'text-red-600' : 'text-yellow-600'
+      }`;
+      messageArea.textContent = text;
+      setTimeout(() => { 
+        if (messageArea && messageArea.textContent === text) {
+          messageArea.textContent = '';
+        }
+      }, 5000);
+    }
+
+    // ============= UNIFIED SEARCH =============
+    function handleSearch() {
+      const searchTerm = searchInput.value.trim();
+      if (!searchTerm) return;
+      const searchType = document.querySelector('input[name="searchType"]:checked').value;
+
+      toggleLoading(true);
+      resultsArea.innerHTML = '';
+      messageArea.textContent = '';
+      content.classList.add('hidden');
+
+      // Searches all sheets across Satsang records
+      google.script.run
+        .withSuccessHandler(results => {
+          toggleLoading(false);
+          if (results && results.length > 0) {
+            displayResults(results);
+          } else {
+            showMessage('error', `No members found matching "${searchTerm}".`);
+          }
+        })
+        .withFailureHandler(err => {
+          toggleLoading(false);
+          showMessage('error', 'An error occurred: ' + err.message);
+        })
+        .findStudents(searchTerm, searchType, 'Branch');
+    }
+
+    function displayResults(students) {
+      resultsArea.innerHTML = ''; 
+      students.forEach(student => {
+        let tagClass = "bg-gray-100 text-gray-700 border-gray-200";
+        if (student.color === 'blue') tagClass = "bg-blue-100 text-blue-800 border-blue-200";
+        else if (student.color === 'purple') tagClass = "bg-purple-100 text-purple-800 border-purple-200";
+        else if (student.color === 'emerald') tagClass = "bg-green-100 text-green-800 border-green-200";
+        else if (student.color === 'amber') tagClass = "bg-amber-100 text-amber-800 border-amber-200";
+
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-gray-50 rounded-lg border flex items-center justify-between gap-3 card-enter hover:bg-gray-100/70 transition-colors';
+        div.innerHTML = `
+          <div class="flex-grow">
+            <div class="flex items-center space-x-2 flex-wrap">
+              <p class="font-semibold text-gray-800">${escapeHtml(student.name)}</p>
+              <span class="text-xs font-bold px-2 py-0.5 rounded border ${tagClass}">${student.categoryLabel}</span>
+            </div>
+            <p class="text-sm text-gray-600">Father: ${escapeHtml(student.fatherName)}</p>
+            <p class="text-sm text-gray-500">DOB: ${student.dob} | Branch: <span class="font-bold text-indigo-700">${student.branchNo}</span></p>
+          </div>
+          <div class="flex-shrink-0">
+            <button id="infoBtn_${student.branchNo}" class="w-28 text-sm bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 flex items-center justify-center transition-all shadow-sm touch-btn" onclick="getDetails(this, '${student.branchNo}', '${student.targetGroup}')">
+              <span class="btn-text">Get Info</span>
+              <span class="spinner hidden"></span>
+            </button>
+          </div>
+        `;
+        resultsArea.appendChild(div);
+      });
+    }
+
+    function getDetails(button, branchNo, targetGroup) {
+      const textEl = button.querySelector('.btn-text');
+      const spinnerEl = button.querySelector('.spinner');
+
+      document.querySelectorAll('button[id^="infoBtn_"]').forEach(btn => btn.disabled = true);
+      button.disabled = true;
+      if (textEl) textEl.classList.add('hidden');
+      if (spinnerEl) spinnerEl.classList.remove('hidden');
+
+      loader.classList.remove('hidden');
+      content.classList.add('hidden');
+
+      google.script.run
+        .withSuccessHandler(data => {
+          loader.classList.add('hidden');
+          document.querySelectorAll('button[id^="infoBtn_"]').forEach(btn => btn.disabled = false);
+          if (textEl) textEl.classList.remove('hidden');
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+
+          if (data && data.details) {
+            populateData(data);
+            content.classList.remove('hidden');
+            content.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            showMessage('error', 'Could not load details for that member.');
+          }
+        })
+        .withFailureHandler(err => {
+          loader.classList.add('hidden');
+          document.querySelectorAll('button[id^="infoBtn_"]').forEach(btn => btn.disabled = false);
+          if (textEl) textEl.classList.remove('hidden');
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+          showMessage('error', 'An error occurred: ' + err.message);
+        })
+        .getStudentDetailsForInfoPage(branchNo, targetGroup);
+    }
+
+    function createDetailItem(key, value) {
+      if (!value || value === 'N/A') return '';
+      return `<div class="detail-item"><span class="detail-key">${key}:</span><span class="detail-value">${escapeHtml(value)}</span></div>`;
+    }
+
+    function populateData(data) {
+      const details = data.details;
+
+      document.getElementById('studentName').textContent = details['Name'] || 'N/A';
+      document.getElementById('branchNoHeader').textContent = details['Branch No.'] || 'N/A';
+      document.getElementById('studentAge').textContent = details['Age'] ? `${details['Age']} years` : 'N/A';
+      document.getElementById('studentDOR').textContent = details['D O R'] || 'N/A';
+
+      document.getElementById('personal-details').innerHTML =
+        createDetailItem('Branch No.', details['Branch No.']) +
+        createDetailItem('DOB', details['DOB']) +
+        createDetailItem('Aadhaar', details['Aadhaar']) +
+        createDetailItem('Class', details['Class']) +
+        createDetailItem('Occupation', details['Occupation']);
+
+      document.getElementById('parent-details').innerHTML =
+        createDetailItem("Father's Name", details["Father's Name"]) +
+        createDetailItem("Mother's Name", details["Mother's Name"]) +
+        createDetailItem('Spouse Name', details['Spouse Name']);
+
+      document.getElementById('contact-details').innerHTML =
+        createDetailItem('Phone No.', details['Phone No.']) +
+        createDetailItem('Email ID', details['Email ID']) +
+        createDetailItem('Address', details['Address']);
+
+      // Satsang Stats
+      document.getElementById('satsang_present').textContent = data.satsangStats.present;
+      document.getElementById('satsang_total').textContent = data.satsangStats.total;
+      document.getElementById('satsang_percentage').textContent = `${data.satsangStats.percentage}%`;
+
+      // Sewa Stats
+      document.getElementById('sewa_present').textContent = data.sewaStats.present;
+      document.getElementById('sewa_total').textContent = data.sewaStats.total;
+      document.getElementById('sewa_percentage').textContent = `${data.sewaStats.percentage}%`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+</html>
