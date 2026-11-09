@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Adanbagh Attendance - Dayalbagh</title>
 
-  <!-- PWA & Mobile Meta Tags -->
+  <!-- PWA & Mobile Meta Tags (Universal Android + iOS) -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f59e0b">
   <meta name="mobile-web-app-capable" content="yes">
@@ -45,6 +45,9 @@
       flex-direction: column;
       position: relative;
       background-color: #fffbeb;
+      /* Safe area insets for iPhone 14/15/16 Dynamic Island and home bar */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* Top Accent Line (Dayalbagh Yellow) */
@@ -151,10 +154,10 @@
       font-weight: 500;
     }
 
-    /* PWA Install Banner */
+    /* PWA Install Banner (Android + iOS) */
     #install-banner {
       position: fixed;
-      bottom: 16px;
+      bottom: calc(16px + env(safe-area-inset-bottom));
       left: 16px;
       right: 16px;
       max-width: 480px;
@@ -192,7 +195,8 @@
     .banner-sub {
       font-size: 12px;
       color: #92400e;
-      margin-top: 2px;
+      margin-top: 3px;
+      line-height: 1.3;
     }
 
     .banner-btn-group {
@@ -223,7 +227,7 @@
       background: transparent;
       border: none;
       color: #9ca3af;
-      font-size: 18px;
+      font-size: 20px;
       line-height: 1;
       padding: 4px;
       cursor: pointer;
@@ -232,7 +236,7 @@
     /* Floating Reload Button */
     .floating-bar {
       position: fixed;
-      bottom: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
       right: 12px;
       display: flex;
       gap: 8px;
@@ -281,11 +285,11 @@
     </div>
   </div>
 
-  <!-- PWA Install Banner (Triggered automatically on Android Chrome) -->
+  <!-- PWA Install Banner (Android Auto-Trigger + iOS Guidance) -->
   <div id="install-banner">
     <div class="banner-text-box">
-      <div class="banner-title">📲 Install Adanbagh App</div>
-      <div class="banner-sub">Install on phone for 1-tap full-screen access</div>
+      <div class="banner-title" id="banner-title-text">📲 Install Adanbagh App</div>
+      <div class="banner-sub" id="banner-sub-text">Install on phone for 1-tap full-screen access</div>
     </div>
     <div class="banner-btn-group">
       <button class="install-action-btn" id="install-btn">Install</button>
@@ -304,7 +308,6 @@
 
   <script>
     // ================= STATICALLY HARDCODED APPS SCRIPT URL =================
-    // Statically embedded so volunteers never have to enter any URL!
     const APPS_SCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbx_nFBvlS47cInxYTWERD-CEK_boEoaRFNrkCPzt-MD7HCiwh-odNRswmOnVu2WfDd_Yw/exec";
 
     function initPortal() {
@@ -347,16 +350,36 @@
       frame.src = frame.src;
     });
 
-    // ================= PWA INSTALLATION PROMPT =================
+    // ================= PWA INSTALLATION (ANDROID + IPHONE) =================
     let deferredPrompt = null;
     const installBanner = document.getElementById('install-banner');
     const installBtn = document.getElementById('install-btn');
     const dismissBtn = document.getElementById('dismiss-banner');
+    const bannerTitle = document.getElementById('banner-title-text');
+    const bannerSub = document.getElementById('banner-sub-text');
 
+    // Detect if running on iPhone/iPad
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+    // Check if dismissed before in this session
+    const isDismissed = sessionStorage.getItem('PWA_BANNER_DISMISSED');
+
+    if (isIos && !isStandalone && !isDismissed) {
+      // Show Apple-specific instruction on iPhone Safari
+      bannerTitle.textContent = "📲 Install on your iPhone";
+      bannerSub.innerHTML = "Tap the <strong>Share</strong> button (square with arrow ⎋) at the bottom, then tap <strong>'Add to Home Screen'</strong>";
+      installBtn.style.display = 'none'; // iOS has no programmatic trigger
+      installBanner.style.display = 'flex';
+    }
+
+    // Android Chrome prompt event
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      installBanner.style.display = 'flex';
+      if (!isDismissed) {
+        installBanner.style.display = 'flex';
+      }
     });
 
     installBtn.addEventListener('click', async () => {
@@ -370,12 +393,12 @@
 
     dismissBtn.addEventListener('click', () => {
       installBanner.style.display = 'none';
+      sessionStorage.setItem('PWA_BANNER_DISMISSED', 'true');
     });
 
     window.addEventListener('appinstalled', () => {
       installBanner.style.display = 'none';
       deferredPrompt = null;
-      console.log('Adanbagh Attendance PWA installed successfully!');
     });
 
     // Register Service Worker
