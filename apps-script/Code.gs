@@ -61,6 +61,9 @@ function doGet(e) {
       title = 'Adanbagh Attendance';
   }
 
+  // Pre-inject script URL server-side so all navigation links work instantly from millisecond 0
+  template.scriptUrl = ScriptApp.getService().getUrl();
+
   return template.evaluate()
     .setTitle(title)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
