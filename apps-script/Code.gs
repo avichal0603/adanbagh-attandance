@@ -358,7 +358,7 @@ function findStudents(searchTerm, searchType, attendanceType) {
 // ============= VOLUNTEER IDENTITY & LOGGING =============
 
 /**
- * Returns available volunteer emails from the spreadsheet, or standard fallback.
+ * Returns available volunteer names from the 'Volunteers' sheet, or standard fallback.
  * Allows seamless volunteer identification without Google OAuth permission screens.
  */
 function getVolunteersList() {
@@ -372,14 +372,16 @@ function getVolunteersList() {
   
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('Authorized_Users') || ss.getSheetByName('Emails') || ss.getSheetByName('Volunteers');
+    const sheet = ss.getSheetByName('Volunteers') || ss.getSheetByName('Authorized_Users') || ss.getSheetByName('Emails');
     if (sheet) {
       const values = sheet.getDataRange().getValues();
       const list = [];
       for (let i = 1; i < values.length; i++) {
         for (let j = 0; j < values[i].length; j++) {
           const val = String(values[i][j]).trim();
-          if (val && val.includes('@')) list.push(val);
+          if (val && val !== '' && !val.toLowerCase().includes('volunteer name')) {
+            list.push(val);
+          }
         }
       }
       if (list.length > 0) return [...new Set(list)];
@@ -387,6 +389,39 @@ function getVolunteersList() {
   } catch (e) {}
   
   return defaultList;
+}
+
+/**
+ * Saves a new volunteer name permanently into the 'Volunteers' sheet.
+ */
+function saveVolunteerName(name) {
+  if (!name || String(name).trim() === '') return { status: 'ERROR', message: 'Name cannot be empty' };
+  const cleanName = String(name).trim();
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Volunteers');
+    if (!sheet) {
+      sheet = ss.insertSheet('Volunteers');
+      sheet.getRange(1, 1).setValue('Volunteer Name').setFontWeight('bold').setBackground('#f3f4f6');
+      sheet.setFrozenRows(1);
+    }
+
+    const lastRow = sheet.getLastRow();
+    let existing = [];
+    if (lastRow > 1) {
+      existing = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().map(v => String(v).trim().toLowerCase());
+    }
+
+    if (!existing.includes(cleanName.toLowerCase())) {
+      sheet.appendRow([cleanName]);
+    }
+
+    return { status: 'SUCCESS', name: cleanName, list: getVolunteersList() };
+  } catch (e) {
+    Logger.log(`saveVolunteerName error: ${e.message}`);
+    return { status: 'ERROR', message: e.message };
+  }
 }
 
 // ============= QUEUE ARCHITECTURE =============
@@ -549,15 +584,19 @@ function processQueue() {
           attendanceData[rowIndex][0] = 'P';
           markedCount++;
           
-          // Prepare audit log entry: Timestamp, Date, Branch No, Name, Father Name, MarkedBy, Target
+          // Columns A to F: (Timestamp, Date, Branch No., Name, Father's Name, MarkedBy)
+          const studentName = String(sheet.getRange(rowIndex + 2, config.nameCol + 1).getValue() || '').trim();
+          const fatherName = (config.fatherNameCol !== null && config.fatherNameCol !== undefined) 
+            ? String(sheet.getRange(rowIndex + 2, config.fatherNameCol + 1).getValue() || '').trim() 
+            : '';
+
           auditLogs.push([
-            new Date(),
-            dateStr,
-            item.branchNo,
-            sheet.getRange(rowIndex + 2, config.nameCol + 1).getValue() || '',
-            (config.fatherNameCol !== null) ? sheet.getRange(rowIndex + 2, config.fatherNameCol + 1).getValue() : '',
-            item.markedBy || 'Volunteer',
-            targetGroup
+            Utilities.formatDate(new Date(), "GMT+5:30", "dd-MM-yyyy HH:mm:ss"), // A: Timestamp
+            dateStr,                                                             // B: Date
+            item.branchNo,                                                       // C: Branch No.
+            studentName,                                                         // D: Name
+            fatherName,                                                          // E: Father's Name
+            item.markedBy || 'Volunteer'                                         // F: MarkedBy
           ]);
         } else {
           results.notFound++;
@@ -575,16 +614,22 @@ function processQueue() {
     }
   }
   
-  // Write audit log to 'Attendance_Logs' sheet if it exists
+  // Write audit log to 'AttendanceRecords' sheet (Columns A to F)
   if (auditLogs.length > 0) {
     try {
-      const logsSheet = ss.getSheetByName('Attendance_Logs');
-      if (logsSheet) {
-        const lastLogRow = logsSheet.getLastRow();
-        logsSheet.getRange(lastLogRow + 1, 1, auditLogs.length, auditLogs[0].length).setValues(auditLogs);
+      let recordsSheet = ss.getSheetByName('AttendanceRecords');
+      if (!recordsSheet) {
+        recordsSheet = ss.insertSheet('AttendanceRecords');
+        recordsSheet.getRange(1, 1, 1, 6).setValues([
+          ['Timestamp', 'Date', 'Branch No.', 'Name', "Father's Name", 'MarkedBy']
+        ]);
+        recordsSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f4f6');
+        recordsSheet.setFrozenRows(1);
       }
+      const lastLogRow = recordsSheet.getLastRow();
+      recordsSheet.getRange(lastLogRow + 1, 1, auditLogs.length, 6).setValues(auditLogs);
     } catch (e) {
-      Logger.log(`Attendance_Logs recording failed: ${e.message}`);
+      Logger.log(`AttendanceRecords recording failed: ${e.message}`);
     }
   }
 

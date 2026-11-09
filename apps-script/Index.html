@@ -5,17 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Adanbagh Attendance Portal</title>
   
-  <!-- Inter Font & Tailwind CDN -->
+  <!-- Inter & Cinzel Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #fffbeb; /* User's authentic warm cream background */
+      background-color: #fffbeb; /* Authentic warm cream background */
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
     }
 
     .spinner, .page-spinner {
@@ -50,9 +54,9 @@
 
     /* Segmented Control Styles */
     .toggle-radio:checked + .toggle-label {
-      background-color: #4f46e5;
+      background-color: #1e40af;
       color: #ffffff;
-      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);
+      box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.25);
     }
     .toggle-radio:not(:checked) + .toggle-label {
       background-color: #f3f4f6;
@@ -64,8 +68,8 @@
 
     /* Tab Switcher Styles */
     .main-tab-btn.active {
-      color: #4338ca;
-      border-bottom-color: #4f46e5;
+      color: #1e40af;
+      border-bottom-color: #1e40af;
       background-color: #ffffff;
     }
     .main-tab-btn:not(.active) {
@@ -88,17 +92,17 @@
       transition: all 0.15s ease-in-out;
     }
     input:focus, select:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+      border-color: #1e40af;
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
     }
     .required-star { color: #dc2626; }
     .detail-section {
       font-size: 0.875rem;
       font-weight: 700;
-      color: #4338ca;
+      color: #1e40af;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 2px solid #e0e7ff;
+      border-bottom: 2px solid #dbeafe;
       padding-bottom: 0.35rem;
       margin-bottom: 0.75rem;
     }
@@ -112,9 +116,9 @@
     .detail-value { color: #111827; font-weight: 600; text-align: right; }
   </style>
 </head>
-<body class="min-h-screen p-3 md:p-6 flex flex-col justify-center items-center">
+<body class="min-h-screen p-2.5 sm:p-4 md:p-6 flex flex-col justify-center items-center">
 
-  <div class="w-full max-w-2xl mx-auto space-y-4">
+  <div class="w-full max-w-2xl mx-auto space-y-3.5">
     
     <!-- SATSANG BANNER -->
     <div class="w-full text-center py-2 bg-amber-500 rounded-md shadow-sm border border-amber-600">
@@ -124,38 +128,42 @@
     <!-- MAIN APP CONTAINER -->
     <div class="bg-white rounded-lg shadow-xl overflow-hidden border-t-8 border-yellow-400">
       
-      <!-- APP HEADER & NAVIGATION TABS (INSTANT ZERO-MS SWITCHING) -->
+      <!-- APP HEADER & NAVIGATION TABS -->
       <div class="text-center pt-5 px-4 bg-gray-50 border-b border-gray-100">
-        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Adanbagh Branch</h1>
+        <!-- Styled in Blue Accent Theme with Cinzel Font -->
+        <h1 class="font-cinzel text-2xl md:text-3xl font-black text-blue-900 tracking-wider uppercase">
+          Adanbagh Branch
+        </h1>
         
         <!-- Live Date & Volunteer Tag -->
         <div class="flex items-center justify-center gap-2 mt-2 flex-wrap">
-          <div id="dateTime" class="text-xs font-semibold text-indigo-700 bg-white px-2.5 py-1 rounded shadow-sm border border-gray-200">
+          <div id="dateTime" class="text-xs font-semibold text-blue-800 bg-blue-50 px-2.5 py-1 rounded shadow-xs border border-blue-200">
             Sunday, Attendance
           </div>
-          <button id="volunteerPill" type="button" class="text-xs font-medium text-gray-600 bg-white hover:bg-gray-100 px-2.5 py-1 rounded shadow-sm border border-gray-200 flex items-center space-x-1 transition-colors">
+          <button id="volunteerPill" type="button" class="text-xs font-bold text-blue-900 bg-white hover:bg-blue-50 px-2.5 py-1 rounded shadow-xs border border-blue-300 flex items-center space-x-1.5 transition-colors touch-btn">
             <span>👤</span>
             <span id="currentVolunteerName">Select Volunteer</span>
+            <span class="text-[10px] text-blue-600 underline">Change</span>
           </button>
         </div>
 
         <!-- 3 MAIN TABS -->
         <nav class="flex border-b border-gray-200 mt-4 -mb-px">
-          <button id="tabBtnAttendance" onclick="switchView('attendance')" class="main-tab-btn active flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1.5 transition-all">
+          <button id="tabBtnAttendance" onclick="switchView('attendance')" class="main-tab-btn active flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <span>Attendance</span>
           </button>
 
-          <button id="tabBtnInfo" onclick="switchView('info')" class="main-tab-btn flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1.5 transition-all">
+          <button id="tabBtnInfo" onclick="switchView('info')" class="main-tab-btn flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>Member Info</span>
           </button>
 
-          <button id="tabBtnAdmin" onclick="switchView('admin')" class="main-tab-btn flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1.5 transition-all">
+          <button id="tabBtnAdmin" onclick="switchView('admin')" class="main-tab-btn flex-1 py-3 text-center text-xs md:text-sm font-bold border-b-2 flex items-center justify-center space-x-1 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.966-.35 2.141-.948 2.286-1.56.38-1.56 2.6 0 2.98.6.145 1.488 1.32 1.028 2.286-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.286-.948c.38 1.56 2.6 1.56 2.98 0 .6-.145 1.488-1.32 1.028-2.286.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.286.948c-.38-1.56-2.6-1.56-2.98 0zM10 5a5 5 0 100 10 5 5 0 000-10zM10 8a2 2 0 100 4 2 2 0 000-4z" clip-rule="evenodd" />
             </svg>
@@ -192,11 +200,11 @@
           <!-- Branch No vs Name -->
           <div class="flex items-center justify-center space-x-6 text-sm">
             <label class="flex items-center font-medium text-gray-700 cursor-pointer">
-              <input type="radio" name="searchType" value="branchNo" id="searchTypeBranch" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 mr-2">
+              <input type="radio" name="searchType" value="branchNo" id="searchTypeBranch" checked class="h-4 w-4 text-blue-700 focus:ring-blue-600 mr-2">
               Branch No.
             </label>
             <label class="flex items-center font-medium text-gray-700 cursor-pointer">
-              <input type="radio" name="searchType" value="name" id="searchTypeName" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 mr-2">
+              <input type="radio" name="searchType" value="name" id="searchTypeName" class="h-4 w-4 text-blue-700 focus:ring-blue-600 mr-2">
               Name
             </label>
           </div>
@@ -208,9 +216,9 @@
               id="searchTerm" 
               placeholder="Enter Branch No (e.g. 10001, 45)..." 
               autocomplete="off"
-              class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg outline-none"
+              class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-blue-600 focus:border-blue-600 sm:text-lg outline-none"
             >
-            <button id="lookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-indigo-600 text-white font-semibold rounded-r-md hover:bg-indigo-700 focus:outline-none transition-colors touch-btn">
+            <button id="lookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-blue-800 text-white font-semibold rounded-r-md hover:bg-blue-900 focus:outline-none transition-colors touch-btn">
               <span id="lookupBtnText">Search</span>
               <div id="lookupSpinner" class="spinner hidden"></div>
             </button>
@@ -223,8 +231,8 @@
 
         <!-- Session Stats Footer -->
         <div class="border-t border-gray-100 pt-3 flex justify-between items-center text-xs text-gray-500">
-          <span>Active Volunteers Log Enabled</span>
-          <span>Marked this session: <strong id="sessionCounter" class="text-indigo-600 font-bold">0</strong></span>
+          <span>Logs saved to <strong class="text-blue-800 font-bold">AttendanceRecords</strong></span>
+          <span>Marked: <strong id="sessionCounter" class="text-blue-800 font-bold">0</strong></span>
         </div>
       </div>
 
@@ -233,18 +241,18 @@
       <!-- ============================================================= -->
       <div id="panelInfo" class="view-panel hidden p-4 md:p-8 space-y-6">
         
-        <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-100">
-          <h2 class="text-base font-bold text-indigo-900 mb-1">Search Member Directory</h2>
-          <p class="text-xs text-indigo-700">Look up contact info, family details, and Satsang & Sewa attendance percentages.</p>
+        <div class="bg-blue-50/70 p-4 rounded-lg border border-blue-100">
+          <h2 class="text-base font-bold text-blue-900 mb-1">Search Member Directory</h2>
+          <p class="text-xs text-blue-700">Look up contact info, family details, and Satsang & Sewa attendance percentages.</p>
           
           <!-- Search Type Selection -->
           <div class="flex items-center space-x-6 text-sm my-3">
             <label class="flex items-center font-medium text-gray-700 cursor-pointer">
-              <input type="radio" name="infoSearchType" value="branchNo" id="infoSearchTypeBranch" checked class="h-4 w-4 text-indigo-600 mr-2">
+              <input type="radio" name="infoSearchType" value="branchNo" id="infoSearchTypeBranch" checked class="h-4 w-4 text-blue-700 mr-2">
               Branch No.
             </label>
             <label class="flex items-center font-medium text-gray-700 cursor-pointer">
-              <input type="radio" name="infoSearchType" value="name" id="infoSearchTypeName" class="h-4 w-4 text-indigo-600 mr-2">
+              <input type="radio" name="infoSearchType" value="name" id="infoSearchTypeName" class="h-4 w-4 text-blue-700 mr-2">
               Name
             </label>
           </div>
@@ -256,9 +264,9 @@
               id="infoSearchTerm" 
               placeholder="Enter Branch No to view details..." 
               autocomplete="off"
-              class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-base outline-none bg-white"
+              class="flex-1 block w-full rounded-none rounded-l-md px-4 py-3 border border-gray-300 focus:ring-blue-600 focus:border-blue-600 sm:text-base outline-none bg-white"
             >
-            <button id="infoLookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-indigo-600 text-white font-semibold rounded-r-md hover:bg-indigo-700 transition-colors touch-btn">
+            <button id="infoLookupBtn" class="inline-flex items-center justify-center px-6 py-3 border border-l-0 border-transparent bg-blue-800 text-white font-semibold rounded-r-md hover:bg-blue-900 transition-colors touch-btn">
               <span id="infoLookupBtnText">Search</span>
               <div id="infoLookupSpinner" class="spinner hidden"></div>
             </button>
@@ -278,11 +286,11 @@
         <div id="infoCardContent" class="hidden card-enter bg-white rounded-lg border border-gray-200 overflow-hidden shadow-md">
           <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div>
-              <h2 id="infoStudentName" class="text-2xl font-bold text-indigo-700"></h2>
+              <h2 id="infoStudentName" class="text-2xl font-bold text-blue-900"></h2>
               <p class="text-xs text-gray-500">Branch No: <strong id="infoBranchNoHeader" class="text-gray-800 text-sm"></strong></p>
             </div>
             <div class="flex items-center space-x-2 text-xs">
-              <span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full">
+              <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full">
                 Age: <span id="infoStudentAge"></span>
               </span>
               <span class="bg-yellow-100 text-yellow-800 font-bold px-2.5 py-1 rounded-full">
@@ -291,9 +299,51 @@
             </div>
           </div>
 
-          <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Left 2 Cols: Details -->
-            <div class="md:col-span-2 space-y-5">
+          <div class="p-4 md:p-6 space-y-6">
+            
+            <!-- SATSANG & SEWA STATS ROW (FULL WIDTH RESPONSIVE - FIXES CLIPPED TEXT) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Satsang Attendance Stats -->
+              <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-center">
+                <h4 class="text-xs font-black text-blue-900 uppercase tracking-wider mb-2.5">Satsang Attendance</h4>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-blue-700 font-extrabold uppercase tracking-tight">Present</span>
+                    <span id="infoSatsangPresent" class="text-lg sm:text-xl font-black text-blue-900 leading-tight mt-0.5">-</span>
+                  </div>
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-gray-500 font-extrabold uppercase tracking-tight">Total</span>
+                    <span id="infoSatsangTotal" class="text-lg sm:text-xl font-black text-gray-800 leading-tight mt-0.5">-</span>
+                  </div>
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-green-700 font-extrabold uppercase tracking-tight">Percent</span>
+                    <span id="infoSatsangPercentage" class="text-sm sm:text-lg font-black text-green-700 leading-tight mt-0.5">-</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sewa Attendance Stats -->
+              <div class="bg-amber-50/70 p-3.5 rounded-xl border border-amber-100 text-center">
+                <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider mb-2.5">Sewa Attendance</h4>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-amber-700 font-extrabold uppercase tracking-tight">Present</span>
+                    <span id="infoSewaPresent" class="text-lg sm:text-xl font-black text-amber-900 leading-tight mt-0.5">-</span>
+                  </div>
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-gray-500 font-extrabold uppercase tracking-tight">Total</span>
+                    <span id="infoSewaTotal" class="text-lg sm:text-xl font-black text-gray-800 leading-tight mt-0.5">-</span>
+                  </div>
+                  <div class="bg-white px-1.5 py-2 rounded-lg shadow-xs flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-green-700 font-extrabold uppercase tracking-tight">Percent</span>
+                    <span id="infoSewaPercentage" class="text-sm sm:text-lg font-black text-green-700 leading-tight mt-0.5">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Details Columns -->
+            <div class="space-y-5">
               <div>
                 <h3 class="detail-section">Personal Details</h3>
                 <div id="infoPersonalDetails" class="divide-y divide-gray-100"></div>
@@ -308,62 +358,30 @@
               </div>
             </div>
 
-            <!-- Right 1 Col: Satsang & Sewa Stats -->
-            <div class="md:col-span-1 space-y-4">
-              <!-- Satsang Stats -->
-              <div class="bg-indigo-50/70 p-3.5 rounded-lg border border-indigo-100 text-center space-y-2">
-                <h4 class="text-xs font-bold text-indigo-800 uppercase tracking-wider">Satsang Attendance</h4>
-                <div class="grid grid-cols-3 gap-1">
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Present</p>
-                    <p id="infoSatsangPresent" class="text-xl font-black text-indigo-700">-</p>
-                  </div>
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total</p>
-                    <p id="infoSatsangTotal" class="text-xl font-black text-gray-700">-</p>
-                  </div>
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-green-600 uppercase font-bold">%</p>
-                    <p id="infoSatsangPercentage" class="text-xl font-black text-green-600">-</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sewa Stats -->
-              <div class="bg-amber-50/70 p-3.5 rounded-lg border border-amber-100 text-center space-y-2">
-                <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider">Sewa Attendance</h4>
-                <div class="grid grid-cols-3 gap-1">
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Present</p>
-                    <p id="infoSewaPresent" class="text-xl font-black text-amber-700">-</p>
-                  </div>
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total</p>
-                    <p id="infoSewaTotal" class="text-xl font-black text-gray-700">-</p>
-                  </div>
-                  <div class="bg-white p-2 rounded shadow-xs">
-                    <p class="text-[10px] text-green-600 uppercase font-bold">%</p>
-                    <p id="infoSewaPercentage" class="text-xl font-black text-green-600">-</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
       </div>
 
       <!-- ============================================================= -->
-      <!-- VIEW 3: ADMIN PANEL (INSTANT SPA PANEL - ZERO BUFFER)         -->
+      <!-- VIEW 3: ADMIN PANEL (WITH BLUE ACCENT & CINZEL HEADING)       -->
       <!-- ============================================================= -->
       <div id="panelAdmin" class="view-panel hidden p-4 md:p-8 space-y-6">
         
+        <!-- ADMIN HEADING IN BLUE ACCENT THEME & CINZEL FONT -->
+        <div class="text-center pb-3 border-b border-gray-100">
+          <h2 class="font-cinzel text-2xl md:text-3xl font-black text-blue-900 tracking-wider uppercase">
+            Adanbagh Branch
+          </h2>
+          <p class="text-xs font-bold text-blue-700 tracking-widest uppercase mt-0.5">Admin Management Portal</p>
+        </div>
+
         <!-- Admin Sub-tabs -->
         <div class="flex border-b border-gray-200">
-          <button id="subTabRegisterBtn" onclick="switchAdminSubTab('register')" class="flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-indigo-600 border-b-2 border-indigo-600 touch-btn">
+          <button id="subTabRegisterBtn" onclick="switchAdminSubTab('register')" class="flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-blue-800 border-b-2 border-blue-800 touch-btn">
             Add New Member
           </button>
-          <button id="subTabBackDateBtn" onclick="switchAdminSubTab('backdate')" class="flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-indigo-600 touch-btn">
+          <button id="subTabBackDateBtn" onclick="switchAdminSubTab('backdate')" class="flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-blue-800 touch-btn">
             Back-Date Attendance
           </button>
         </div>
@@ -389,9 +407,9 @@
             </select>
           </div>
 
-          <div id="regSewaCheckboxWrapper" class="hidden bg-indigo-50/70 p-2.5 rounded border border-indigo-100 flex items-center space-x-2">
-            <input type="checkbox" id="regAddToSewa" class="h-4 w-4 text-indigo-600 rounded">
-            <label for="regAddToSewa" class="text-xs font-semibold text-indigo-900 cursor-pointer">Also add to corresponding Sewa sheet</label>
+          <div id="regSewaCheckboxWrapper" class="hidden bg-blue-50/70 p-2.5 rounded border border-blue-100 flex items-center space-x-2">
+            <input type="checkbox" id="regAddToSewa" class="h-4 w-4 text-blue-700 rounded">
+            <label for="regAddToSewa" class="text-xs font-semibold text-blue-900 cursor-pointer">Also add to corresponding Sewa sheet</label>
           </div>
 
           <div id="regFormFields" class="hidden space-y-4 card-enter">
@@ -462,7 +480,7 @@
               </div>
             </div>
 
-            <button type="submit" id="regSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md shadow-sm transition-colors touch-btn flex items-center justify-center">
+            <button type="submit" id="regSubmitBtn" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-md shadow-sm transition-colors touch-btn flex items-center justify-center">
               <span id="regSubmitText">Add Member to Records</span>
               <div id="regSubmitSpinner" class="spinner hidden"></div>
             </button>
@@ -473,13 +491,13 @@
 
         <!-- Sub-View B: Back-Date Attendance -->
         <div id="adminBackDateView" class="space-y-4 hidden">
-          <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-100 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-blue-50/70 p-4 rounded-lg border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Target Date</label>
+              <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Target Date</label>
               <input type="date" id="backDateInput" class="bg-white font-semibold">
             </div>
             <div>
-              <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Category Filter</label>
+              <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Category Filter</label>
               <select id="backDateTargetGroup" class="bg-white font-semibold">
                 <option value="">-- All Categories (Auto-Search) --</option>
                 <option value="StudentB">Student Boys</option>
@@ -493,7 +511,7 @@
           <!-- Back-Date Search -->
           <div class="flex shadow-sm rounded-md">
             <input type="number" id="backDateSearchTerm" placeholder="Enter Branch No for Back-Date..." class="flex-1 px-4 py-3 border border-gray-300 rounded-l-md outline-none sm:text-base">
-            <button id="backDateLookupBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 font-bold rounded-r-md touch-btn flex items-center justify-center">
+            <button id="backDateLookupBtn" type="button" class="bg-blue-800 hover:bg-blue-900 text-white px-6 font-bold rounded-r-md touch-btn flex items-center justify-center">
               <span id="backDateLookupText">Search</span>
               <div id="backDateLookupSpinner" class="spinner hidden"></div>
             </button>
@@ -509,24 +527,44 @@
 
   </div>
 
-  <!-- Volunteer Identity Modal -->
-  <div id="volunteerModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 border-t-8 border-yellow-400 card-enter">
-      <h3 class="text-lg font-bold text-gray-800 mb-1">Select Volunteer Name</h3>
-      <p class="text-xs text-gray-500 mb-4">Choose your name to log who is marking attendance today:</p>
+  <!-- ============================================================= -->
+  <!-- MANDATORY VOLUNTEER IDENTITY MODAL (POPS UP AUTOMATICALLY)    -->
+  <!-- ============================================================= -->
+  <div id="volunteerModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border-t-8 border-yellow-400 card-enter">
       
-      <div id="volunteerListContainer" class="space-y-2 max-h-56 overflow-y-auto mb-4 border rounded p-2 bg-gray-50"></div>
+      <!-- Modal Header -->
+      <div class="text-center pb-3 border-b border-gray-100">
+        <span class="text-[10px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Ra-Dha-Sva-Aah-Mi</span>
+        <h3 class="text-xl font-black text-blue-900 mt-1">Volunteer Sign-In</h3>
+        <p class="text-xs text-gray-500 mt-1">
+          Select or enter your name to log who is marking attendance today:
+        </p>
+      </div>
+
+      <!-- Volunteer Quick Selection List -->
+      <div class="mt-4">
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Saved Volunteers (Tap to pick):</label>
+        <div id="volunteerListContainer" class="space-y-1.5 max-h-48 overflow-y-auto p-1.5 border border-gray-200 rounded-lg bg-gray-50"></div>
+      </div>
       
-      <div class="border-t pt-3">
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Or enter volunteer name/email:</label>
-        <div class="flex gap-2">
-          <input type="text" id="manualVolunteerInput" placeholder="Name or email..." class="text-xs">
-          <button id="saveVolunteerBtn" type="button" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded text-xs touch-btn">Save</button>
+      <!-- Add New Name Input -->
+      <div class="mt-4 border-t border-gray-100 pt-3">
+        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Or write your name:</label>
+        <div class="space-y-2">
+          <input type="text" id="manualVolunteerInput" placeholder="Enter Full Name..." class="text-sm font-semibold">
+          <button id="saveVolunteerBtn" type="button" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-4 rounded-md text-sm touch-btn shadow-sm transition-all flex items-center justify-center">
+            <span>Confirm & Start Marking</span>
+            <div id="volunteerSaveSpinner" class="spinner hidden ml-2"></div>
+          </button>
         </div>
       </div>
 
-      <div class="mt-4 text-right">
-        <button id="closeVolunteerModalBtn" type="button" class="text-xs font-semibold text-gray-500 hover:text-gray-800">Close</button>
+      <!-- Close Button (Only visible if volunteer already selected earlier) -->
+      <div id="modalCloseWrapper" class="mt-3 text-center hidden">
+        <button id="closeVolunteerModalBtn" type="button" class="text-xs font-bold text-gray-400 hover:text-gray-600">
+          Cancel & Close
+        </button>
       </div>
     </div>
   </div>
@@ -563,13 +601,13 @@
       const backView = document.getElementById('adminBackDateView');
 
       if (subTab === 'backdate') {
-        regBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-indigo-600 touch-btn";
-        backBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-indigo-600 border-b-2 border-indigo-600 touch-btn";
+        regBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-blue-800 touch-btn";
+        backBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-blue-800 border-b-2 border-blue-800 touch-btn";
         addForm.classList.add('hidden');
         backView.classList.remove('hidden');
       } else {
-        regBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-indigo-600 border-b-2 border-indigo-600 touch-btn";
-        backBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-indigo-600 touch-btn";
+        regBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-blue-800 border-b-2 border-blue-800 touch-btn";
+        backBtn.className = "flex-1 pb-2.5 text-center font-bold text-xs md:text-sm text-gray-500 border-b-2 border-transparent hover:text-blue-800 touch-btn";
         addForm.classList.remove('hidden');
         backView.classList.add('hidden');
       }
@@ -584,20 +622,21 @@
       updateVolunteerDisplay();
       loadVolunteersList();
 
-      // 3. Set default backdate to today
+      // 3. MANDATORY VOLUNTEER POPUP: If no volunteer set, force popup modal!
+      if (!currentVolunteer || currentVolunteer.trim() === '') {
+        openVolunteerModal(true); // Mandatory mode
+      }
+
+      // 4. Set default backdate to today
       const todayIso = new Date().toISOString().split('T')[0];
       document.getElementById('backDateInput').value = todayIso;
 
-      // 4. Wire Attendance Events
+      // 5. Wire Events
       setupAttendanceEvents();
-
-      // 5. Wire Member Info Events
       setupInfoEvents();
-
-      // 6. Wire Admin Events
       setupAdminEvents();
 
-      // 7. Auto-route query param if provided (?page=info or ?page=admin)
+      // 6. Check query param if provided (?page=info or ?page=admin)
       const urlParams = new URLSearchParams(window.location.search);
       const reqPage = urlParams.get('page');
       if (reqPage === 'info') switchView('info');
@@ -646,6 +685,12 @@
     }
 
     function handleAttendanceSearch() {
+      // ENFORCE VOLUNTEER IDENTITY
+      if (!currentVolunteer || currentVolunteer.trim() === '') {
+        openVolunteerModal(true);
+        return;
+      }
+
       const term = document.getElementById('searchTerm').value.trim();
       if (!term) return;
 
@@ -705,7 +750,7 @@
               <span class="text-xs font-bold px-2 py-0.5 rounded border ${tagClass}">${student.categoryLabel}</span>
             </div>
             <p class="text-xs text-gray-600 mt-0.5">Father: ${escapeHtml(student.fatherName)}</p>
-            <p class="text-xs text-gray-500">DOB: ${student.dob} | Branch: <strong class="text-indigo-700 text-sm">${student.branchNo}</strong></p>
+            <p class="text-xs text-gray-500">DOB: ${student.dob} | Branch: <strong class="text-blue-800 text-sm">${student.branchNo}</strong></p>
           </div>
           <div class="flex-shrink-0">
             <button id="markBtn_${student.branchNo}" class="w-28 text-sm bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-3 rounded-md shadow-sm transition-all flex items-center justify-center touch-btn" onclick="submitAttendance(this, '${student.branchNo}', '${student.targetGroup}')">
@@ -719,6 +764,12 @@
     }
 
     function submitAttendance(button, branchNo, targetGroup) {
+      // ENFORCE VOLUNTEER IDENTITY
+      if (!currentVolunteer || currentVolunteer.trim() === '') {
+        openVolunteerModal(true);
+        return;
+      }
+
       const textEl = button.querySelector('.btn-text');
       const spinnerEl = button.querySelector('.spinner');
 
@@ -728,7 +779,7 @@
 
       const payload = {
         branchNo: branchNo,
-        markedBy: currentVolunteer || 'Volunteer'
+        markedBy: currentVolunteer
       };
 
       google.script.run
@@ -837,10 +888,10 @@
               <span class="text-xs font-bold px-2 py-0.5 rounded border ${tagClass}">${student.categoryLabel}</span>
             </div>
             <p class="text-xs text-gray-600 mt-0.5">Father: ${escapeHtml(student.fatherName)}</p>
-            <p class="text-xs text-gray-500">DOB: ${student.dob} | Branch: <strong class="text-indigo-700 text-sm">${student.branchNo}</strong></p>
+            <p class="text-xs text-gray-500">DOB: ${student.dob} | Branch: <strong class="text-blue-800 text-sm">${student.branchNo}</strong></p>
           </div>
           <div class="flex-shrink-0">
-            <button class="w-28 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-3 rounded-md shadow-sm transition-all flex items-center justify-center touch-btn" onclick="fetchMemberProfile(this, '${student.branchNo}', '${student.targetGroup}')">
+            <button class="w-28 text-sm bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-3 rounded-md shadow-sm transition-all flex items-center justify-center touch-btn" onclick="fetchMemberProfile(this, '${student.branchNo}', '${student.targetGroup}')">
               <span class="btn-text">View Info</span>
               <span class="spinner hidden"></span>
             </button>
@@ -1053,7 +1104,7 @@
               div.className = 'p-4 bg-gray-50 rounded border flex items-center justify-between gap-3';
               div.innerHTML = `
                 <div>
-                  <p class="font-bold text-gray-800">${escapeHtml(student.name)} <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">${student.categoryLabel}</span></p>
+                  <p class="font-bold text-gray-800">${escapeHtml(student.name)} <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">${student.categoryLabel}</span></p>
                   <p class="text-xs text-gray-500">Branch: <strong>${student.branchNo}</strong> | DOB: ${student.dob}</p>
                 </div>
                 <button class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-2 rounded touch-btn flex items-center justify-center" onclick="submitBackDate(this, '${student.branchNo}', '${targetDate}', '${student.targetGroup}')">
@@ -1078,13 +1129,18 @@
     }
 
     function submitBackDate(btn, branchNo, date, targetGroup) {
+      if (!currentVolunteer || currentVolunteer.trim() === '') {
+        openVolunteerModal(true);
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = "Marking...";
 
       const payload = {
         branchNo: branchNo,
         date: date,
-        markedBy: currentVolunteer || 'Admin Back-Date'
+        markedBy: currentVolunteer
       };
 
       google.script.run
@@ -1106,34 +1162,75 @@
         .markPresent(payload, targetGroup);
     }
 
-    // ================= VOLUNTEER IDENTITY MODAL =================
+    // ================= VOLUNTEER IDENTITY MODAL & PERSISTENCE =================
+    const volunteerModal = document.getElementById('volunteerModal');
+    const closeWrapper = document.getElementById('modalCloseWrapper');
+
+    function openVolunteerModal(isMandatory = false) {
+      volunteerModal.classList.remove('hidden');
+      if (isMandatory) {
+        closeWrapper.classList.add('hidden');
+      } else {
+        closeWrapper.classList.remove('hidden');
+      }
+    }
+
     document.getElementById('volunteerPill').addEventListener('click', () => {
-      document.getElementById('volunteerModal').classList.remove('hidden');
+      openVolunteerModal(false);
     });
+
     document.getElementById('closeVolunteerModalBtn').addEventListener('click', () => {
-      document.getElementById('volunteerModal').classList.add('hidden');
+      volunteerModal.classList.add('hidden');
     });
+
     document.getElementById('saveVolunteerBtn').addEventListener('click', () => {
       const val = document.getElementById('manualVolunteerInput').value.trim();
-      if (val) setVolunteer(val);
+      if (!val) {
+        alert('Please enter your full name or select from the list.');
+        return;
+      }
+      saveAndSetVolunteer(val);
     });
+
+    function saveAndSetVolunteer(name) {
+      const spinner = document.getElementById('volunteerSaveSpinner');
+      spinner.classList.remove('hidden');
+
+      // Persist in sheet so other volunteers and devices see it!
+      google.script.run
+        .withSuccessHandler(res => {
+          spinner.classList.add('hidden');
+          if (res && res.list) {
+            cachedVolunteers = res.list;
+            renderVolunteerList(cachedVolunteers);
+          }
+          setVolunteer(name);
+        })
+        .withFailureHandler(() => {
+          spinner.classList.add('hidden');
+          setVolunteer(name);
+        })
+        .saveVolunteerName(name);
+    }
 
     function setVolunteer(name) {
       currentVolunteer = name;
       localStorage.setItem('adanbagh_volunteer', name);
       updateVolunteerDisplay();
-      document.getElementById('volunteerModal').classList.add('hidden');
+      volunteerModal.classList.add('hidden');
+      document.getElementById('manualVolunteerInput').value = '';
     }
 
     function updateVolunteerDisplay() {
       const pill = document.getElementById('currentVolunteerName');
-      if (currentVolunteer) {
+      if (currentVolunteer && currentVolunteer.trim() !== '') {
         const shortName = currentVolunteer.includes('@') ? currentVolunteer.split('@')[0] : currentVolunteer;
         pill.textContent = shortName;
-        pill.parentElement.classList.replace('text-gray-600', 'text-indigo-800');
-        pill.parentElement.classList.add('bg-indigo-50', 'border-indigo-200');
+        pill.parentElement.classList.replace('text-gray-600', 'text-blue-900');
+        pill.parentElement.classList.add('bg-blue-50', 'border-blue-300');
       } else {
         pill.textContent = "Select Volunteer";
+        pill.parentElement.classList.remove('bg-blue-50', 'border-blue-300');
       }
     }
 
@@ -1150,17 +1247,17 @@
       const container = document.getElementById('volunteerListContainer');
       container.innerHTML = '';
       if (!list || list.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No preset volunteers found.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">No saved volunteers yet. Enter your name below.</p>';
         return;
       }
       list.forEach(v => {
         const isCurrent = (v === currentVolunteer);
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = `w-full text-left p-2 rounded text-xs font-medium border flex items-center justify-between transition-colors ${
-          isCurrent ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
+        b.className = `w-full text-left p-2 rounded-md text-xs font-semibold border flex items-center justify-between transition-colors ${
+          isCurrent ? 'bg-blue-100 border-blue-400 text-blue-950 font-bold' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
         }`;
-        b.innerHTML = `<span>${escapeHtml(v)}</span>${isCurrent ? '<span class="text-indigo-600">✓ Active</span>' : ''}`;
+        b.innerHTML = `<span>${escapeHtml(v)}</span>${isCurrent ? '<span class="text-blue-800">✓ Active</span>' : ''}`;
         b.onclick = () => setVolunteer(v);
         container.appendChild(b);
       });
