@@ -535,29 +535,29 @@
       
       <!-- Modal Header -->
       <div class="text-center pb-3 border-b border-gray-100">
-        <span class="text-[10px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Ra-Dha-Sva-Aah-Mi</span>
-        <h3 class="text-xl font-black text-blue-900 mt-1">Volunteer Sign-In</h3>
+        <span class="text-[10px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded">Ra-Dha-Sva-Aah-Mi</span>
+        <h3 class="text-xl font-black text-blue-900 mt-1.5">Volunteer Sign-In</h3>
         <p class="text-xs text-gray-500 mt-1">
-          Select or enter your name to log who is marking attendance today:
+          Please enter your name to log who is marking attendance today:
         </p>
       </div>
 
-      <!-- Volunteer Quick Selection List -->
-      <div class="mt-4">
-        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Saved Volunteers (Tap to pick):</label>
-        <div id="volunteerListContainer" class="space-y-1.5 max-h-48 overflow-y-auto p-1.5 border border-gray-200 rounded-lg bg-gray-50"></div>
-      </div>
-      
-      <!-- Add New Name Input -->
-      <div class="mt-4 border-t border-gray-100 pt-3">
-        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Or write your name:</label>
-        <div class="space-y-2">
-          <input type="text" id="manualVolunteerInput" placeholder="Enter Full Name..." class="text-sm font-semibold">
-          <button id="saveVolunteerBtn" type="button" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-4 rounded-md text-sm touch-btn shadow-sm transition-all flex items-center justify-center">
-            <span>Confirm & Start Marking</span>
-            <div id="volunteerSaveSpinner" class="spinner hidden ml-2"></div>
-          </button>
+      <!-- Volunteer Name Input Form Only -->
+      <div class="mt-5 space-y-3">
+        <div>
+          <label for="manualVolunteerInput" class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Your Full Name</label>
+          <input 
+            type="text" 
+            id="manualVolunteerInput" 
+            placeholder="e.g. Rahul Sharma" 
+            autocomplete="name"
+            class="text-base font-semibold py-2.5 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-600 outline-none w-full"
+          >
         </div>
+        <button id="saveVolunteerBtn" type="button" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-md text-sm touch-btn shadow-md transition-all flex items-center justify-center">
+          <span>Confirm & Start Marking</span>
+          <div id="volunteerSaveSpinner" class="spinner hidden ml-2"></div>
+        </button>
       </div>
 
       <!-- Close Button (Only visible if volunteer already selected earlier) -->
@@ -620,7 +620,6 @@
 
       // 2. Setup volunteer identity
       updateVolunteerDisplay();
-      loadVolunteersList();
 
       // 3. MANDATORY VOLUNTEER POPUP: If no volunteer set, force popup modal!
       if (!currentVolunteer || currentVolunteer.trim() === '') {
@@ -1165,9 +1164,12 @@
     // ================= VOLUNTEER IDENTITY MODAL & PERSISTENCE =================
     const volunteerModal = document.getElementById('volunteerModal');
     const closeWrapper = document.getElementById('modalCloseWrapper');
+    const manualVolunteerInput = document.getElementById('manualVolunteerInput');
 
     function openVolunteerModal(isMandatory = false) {
       volunteerModal.classList.remove('hidden');
+      manualVolunteerInput.value = currentVolunteer || '';
+      manualVolunteerInput.focus();
       if (isMandatory) {
         closeWrapper.classList.add('hidden');
       } else {
@@ -1183,27 +1185,30 @@
       volunteerModal.classList.add('hidden');
     });
 
-    document.getElementById('saveVolunteerBtn').addEventListener('click', () => {
-      const val = document.getElementById('manualVolunteerInput').value.trim();
+    manualVolunteerInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') handleVolunteerSubmit();
+    });
+
+    document.getElementById('saveVolunteerBtn').addEventListener('click', handleVolunteerSubmit);
+
+    function handleVolunteerSubmit() {
+      const val = manualVolunteerInput.value.trim();
       if (!val) {
-        alert('Please enter your full name or select from the list.');
+        alert('Please enter your full name to proceed.');
+        manualVolunteerInput.focus();
         return;
       }
       saveAndSetVolunteer(val);
-    });
+    }
 
     function saveAndSetVolunteer(name) {
       const spinner = document.getElementById('volunteerSaveSpinner');
       spinner.classList.remove('hidden');
 
-      // Persist in sheet so other volunteers and devices see it!
+      // Persist in 'Volunteers' sheet in background
       google.script.run
-        .withSuccessHandler(res => {
+        .withSuccessHandler(() => {
           spinner.classList.add('hidden');
-          if (res && res.list) {
-            cachedVolunteers = res.list;
-            renderVolunteerList(cachedVolunteers);
-          }
           setVolunteer(name);
         })
         .withFailureHandler(() => {
@@ -1218,7 +1223,6 @@
       localStorage.setItem('adanbagh_volunteer', name);
       updateVolunteerDisplay();
       volunteerModal.classList.add('hidden');
-      document.getElementById('manualVolunteerInput').value = '';
     }
 
     function updateVolunteerDisplay() {
@@ -1232,35 +1236,6 @@
         pill.textContent = "Select Volunteer";
         pill.parentElement.classList.remove('bg-blue-50', 'border-blue-300');
       }
-    }
-
-    function loadVolunteersList() {
-      google.script.run
-        .withSuccessHandler(list => {
-          cachedVolunteers = list || [];
-          renderVolunteerList(cachedVolunteers);
-        })
-        .getVolunteersList();
-    }
-
-    function renderVolunteerList(list) {
-      const container = document.getElementById('volunteerListContainer');
-      container.innerHTML = '';
-      if (!list || list.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">No saved volunteers yet. Enter your name below.</p>';
-        return;
-      }
-      list.forEach(v => {
-        const isCurrent = (v === currentVolunteer);
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = `w-full text-left p-2 rounded-md text-xs font-semibold border flex items-center justify-between transition-colors ${
-          isCurrent ? 'bg-blue-100 border-blue-400 text-blue-950 font-bold' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
-        }`;
-        b.innerHTML = `<span>${escapeHtml(v)}</span>${isCurrent ? '<span class="text-blue-800">✓ Active</span>' : ''}`;
-        b.onclick = () => setVolunteer(v);
-        container.appendChild(b);
-      });
     }
 
     function escapeHtml(str) {
