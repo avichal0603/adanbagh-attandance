@@ -177,13 +177,13 @@
       <!-- ============================================================= -->
       <div id="panelAttendance" class="view-panel block p-4 md:p-8 space-y-5">
         
-        <!-- Attendance Type: Branch vs Sewa -->
+        <!-- Attendance Type: Satsang vs Sewa -->
         <div>
           <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
             <div>
-              <input type="radio" name="attendanceType" id="attBranch" value="Branch" class="hidden toggle-radio" checked>
+              <input type="radio" name="attendanceType" id="attBranch" value="Satsang" class="hidden toggle-radio" checked>
               <label for="attBranch" class="toggle-label block text-center py-2.5 px-3 rounded-md font-bold text-sm cursor-pointer transition-all touch-btn">
-                Branch Attendance
+                Satsang Attendance
               </label>
             </div>
             <div>
@@ -489,32 +489,116 @@
           <div id="regMessageArea" class="hidden text-center text-sm font-semibold p-3 rounded-md"></div>
         </form>
 
-        <!-- Sub-View B: Back-Date Attendance -->
+        <!-- Sub-View B: Back-Date & Bulk Attendance -->
         <div id="adminBackDateView" class="space-y-4 hidden">
-          <div class="bg-blue-50/70 p-4 rounded-lg border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-3">
+          
+          <!-- Step 1: Attendance Type (Satsang vs Sewa) -->
+          <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
             <div>
-              <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Target Date</label>
-              <input type="date" id="backDateInput" class="bg-white font-semibold">
+              <input type="radio" name="backDateAttType" id="backDateAttSatsang" value="Satsang" class="hidden toggle-radio" checked>
+              <label for="backDateAttSatsang" class="toggle-label block text-center py-2 px-2 rounded-md font-bold text-xs sm:text-sm cursor-pointer transition-all touch-btn">
+                Satsang Attendance
+              </label>
             </div>
             <div>
-              <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Category Filter</label>
-              <select id="backDateTargetGroup" class="bg-white font-semibold">
-                <option value="">-- All Categories (Auto-Search) --</option>
-                <option value="StudentB">Student Boys</option>
-                <option value="StudentG">Student Girls</option>
-                <option value="JigyasuG">Jigyasu Gents</option>
-                <option value="JigyasuL">Jigyasu Ladies</option>
-              </select>
+              <input type="radio" name="backDateAttType" id="backDateAttSewa" value="Sewa" class="hidden toggle-radio">
+              <label for="backDateAttSewa" class="toggle-label block text-center py-2 px-2 rounded-md font-bold text-xs sm:text-sm cursor-pointer transition-all touch-btn">
+                Sewa Attendance
+              </label>
             </div>
           </div>
 
-          <!-- Back-Date Search -->
-          <div class="flex shadow-sm rounded-md">
-            <input type="number" id="backDateSearchTerm" placeholder="Enter Branch No for Back-Date..." class="flex-1 px-4 py-3 border border-gray-300 rounded-l-md outline-none sm:text-base">
-            <button id="backDateLookupBtn" type="button" class="bg-blue-800 hover:bg-blue-900 text-white px-6 font-bold rounded-r-md touch-btn flex items-center justify-center">
-              <span id="backDateLookupText">Search</span>
-              <div id="backDateLookupSpinner" class="spinner hidden"></div>
-            </button>
+          <!-- Step 2: Date Selection Card (Single Date OR Bulk Range) -->
+          <div class="bg-blue-50/70 p-4 rounded-lg border border-blue-100 space-y-3">
+            
+            <!-- Single vs Bulk Mode Switch -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-bold text-blue-900 uppercase">Date Mode:</span>
+              <div class="inline-flex rounded-md bg-white p-0.5 border border-blue-200 shadow-xs">
+                <button type="button" id="modeSingleDateBtn" onclick="setBackDateMode('single')" class="px-3 py-1.5 text-xs font-bold rounded bg-blue-800 text-white transition-all touch-btn">
+                  Single Date
+                </button>
+                <button type="button" id="modeBulkDateBtn" onclick="setBackDateMode('bulk')" class="px-3 py-1.5 text-xs font-bold rounded text-blue-800 hover:bg-blue-50 transition-all touch-btn">
+                  Bulk Range (Multi-Day)
+                </button>
+              </div>
+            </div>
+
+            <!-- Single Date Input -->
+            <div id="singleDateWrapper" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Target Date</label>
+                <input type="date" id="backDateInput" class="bg-white font-semibold">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Category Filter (Optional)</label>
+                <select id="backDateTargetGroup" class="bg-white font-semibold">
+                  <option value="">-- All Categories (Auto-Search) --</option>
+                  <option value="StudentB">Student Boys</option>
+                  <option value="StudentG">Student Girls</option>
+                  <option value="JigyasuG">Jigyasu Gents</option>
+                  <option value="JigyasuL">Jigyasu Ladies</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Bulk Range Inputs (From Date -> To Date) -->
+            <div id="bulkDateWrapper" class="hidden space-y-3">
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-blue-900 uppercase mb-1">From Date</label>
+                  <input type="date" id="backDateFromInput" class="bg-white font-semibold">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-blue-900 uppercase mb-1">To Date</label>
+                  <input type="date" id="backDateToInput" class="bg-white font-semibold">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Dates to Mark in Range</label>
+                  <select id="backDateRangeMode" class="bg-white font-semibold">
+                    <option value="all">Every Day (All Dates in Range)</option>
+                    <option value="sundays">Sundays Only in Range</option>
+                    <option value="existing">Existing Sheet Dates Only</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-blue-900 uppercase mb-1">Category Filter (Optional)</label>
+                  <select id="backDateTargetGroupBulk" class="bg-white font-semibold">
+                    <option value="">-- All Categories (Auto-Search) --</option>
+                    <option value="StudentB">Student Boys</option>
+                    <option value="StudentG">Student Girls</option>
+                    <option value="JigyasuG">Jigyasu Gents</option>
+                    <option value="JigyasuL">Jigyasu Ladies</option>
+                  </select>
+                </div>
+              </div>
+              <div id="bulkRangeSummary" class="text-xs font-bold text-blue-800 bg-white/90 border border-blue-200 rounded px-3 py-1.5 text-center">
+                Select From &amp; To dates for bulk marking
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Back-Date Member Search -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-center space-x-6 text-sm">
+              <label class="flex items-center font-medium text-gray-700 cursor-pointer">
+                <input type="radio" name="backDateSearchType" value="branchNo" id="backDateSearchBranch" checked class="h-4 w-4 text-blue-700 focus:ring-blue-600 mr-2">
+                Branch No.
+              </label>
+              <label class="flex items-center font-medium text-gray-700 cursor-pointer">
+                <input type="radio" name="backDateSearchType" value="name" id="backDateSearchName" class="h-4 w-4 text-blue-700 focus:ring-blue-600 mr-2">
+                Name
+              </label>
+            </div>
+            <div class="flex shadow-sm rounded-md">
+              <input type="number" id="backDateSearchTerm" placeholder="Enter Branch No for Back-Date..." autocomplete="off" class="flex-1 px-4 py-3 border border-gray-300 rounded-l-md outline-none sm:text-base">
+              <button id="backDateLookupBtn" type="button" class="bg-blue-800 hover:bg-blue-900 text-white px-6 font-bold rounded-r-md touch-btn flex items-center justify-center">
+                <span id="backDateLookupText">Search</span>
+                <div id="backDateLookupSpinner" class="spinner hidden"></div>
+              </button>
+            </div>
           </div>
 
           <div id="backDateResultsArea" class="space-y-3"></div>
@@ -571,7 +655,9 @@
 
   <script>
     // ================= GLOBAL STATE =================
-    let selectedAttendanceType = 'Branch';
+    let selectedAttendanceType = 'Satsang';
+    let backDateMode = 'single'; // 'single' | 'bulk'
+    let lastBackDateResults = [];
     let currentVolunteer = localStorage.getItem('adanbagh_volunteer') || '';
     let sessionCount = 0;
     let cachedVolunteers = [];
@@ -626,9 +712,13 @@
         openVolunteerModal(true); // Mandatory mode
       }
 
-      // 4. Set default backdate to today
-      const todayIso = new Date().toISOString().split('T')[0];
+      // 4. Set default backdates to local today
+      const nowLocal = new Date();
+      const todayIso = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
       document.getElementById('backDateInput').value = todayIso;
+      document.getElementById('backDateFromInput').value = todayIso;
+      document.getElementById('backDateToInput').value = todayIso;
+      updateBulkRangeSummary();
 
       // 5. Wire Events
       setupAttendanceEvents();
@@ -1003,9 +1093,124 @@
         handleRegisterSubmit();
       });
 
-      // Back-Date events
+      // Back-Date & Bulk events
       document.getElementById('backDateLookupBtn').addEventListener('click', handleBackDateSearch);
       document.getElementById('backDateSearchTerm').addEventListener('keyup', e => e.key === 'Enter' && handleBackDateSearch());
+
+      document.querySelectorAll('input[name="backDateAttType"]').forEach(r => {
+        r.addEventListener('change', () => {
+          document.getElementById('backDateResultsArea').innerHTML = '';
+          document.getElementById('backDateMessageArea').classList.add('hidden');
+          lastBackDateResults = [];
+        });
+      });
+
+      document.querySelectorAll('input[name="backDateSearchType"]').forEach(r => {
+        r.addEventListener('change', () => {
+          const type = document.querySelector('input[name="backDateSearchType"]:checked').value;
+          const inp = document.getElementById('backDateSearchTerm');
+          inp.type = (type === 'branchNo') ? 'number' : 'text';
+          inp.placeholder = (type === 'branchNo') ? 'Enter Branch No for Back-Date...' : 'Enter Member Name for Back-Date...';
+          inp.value = '';
+          document.getElementById('backDateResultsArea').innerHTML = '';
+          lastBackDateResults = [];
+        });
+      });
+
+      ['backDateInput', 'backDateFromInput', 'backDateToInput', 'backDateRangeMode'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          updateBulkRangeSummary();
+          if (lastBackDateResults.length > 0) renderBackDateResults(lastBackDateResults);
+        });
+      });
+    }
+
+    function setBackDateMode(mode) {
+      backDateMode = mode;
+      const singleBtn = document.getElementById('modeSingleDateBtn');
+      const bulkBtn = document.getElementById('modeBulkDateBtn');
+      const singleWrap = document.getElementById('singleDateWrapper');
+      const bulkWrap = document.getElementById('bulkDateWrapper');
+
+      if (mode === 'bulk') {
+        bulkBtn.className = "px-3 py-1.5 text-xs font-bold rounded bg-blue-800 text-white transition-all touch-btn";
+        singleBtn.className = "px-3 py-1.5 text-xs font-bold rounded text-blue-800 hover:bg-blue-50 transition-all touch-btn";
+        singleWrap.classList.add('hidden');
+        bulkWrap.classList.remove('hidden');
+        updateBulkRangeSummary();
+      } else {
+        singleBtn.className = "px-3 py-1.5 text-xs font-bold rounded bg-blue-800 text-white transition-all touch-btn";
+        bulkBtn.className = "px-3 py-1.5 text-xs font-bold rounded text-blue-800 hover:bg-blue-50 transition-all touch-btn";
+        bulkWrap.classList.add('hidden');
+        singleWrap.classList.remove('hidden');
+      }
+
+      if (lastBackDateResults.length > 0) {
+        renderBackDateResults(lastBackDateResults);
+      }
+    }
+
+    function parseLocalYmd(ymd) {
+      if (!ymd) return null;
+      const parts = ymd.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(isNaN)) return null;
+      return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+    }
+
+    function formatShortDisplayDate(ymd) {
+      const dt = parseLocalYmd(ymd);
+      if (!dt) return ymd;
+      return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+
+    function getSelectedBackDateParams() {
+      if (backDateMode === 'bulk') {
+        const fromDate = document.getElementById('backDateFromInput').value;
+        const toDate = document.getElementById('backDateToInput').value;
+        const rangeMode = document.getElementById('backDateRangeMode').value;
+        return { fromDate, toDate, rangeMode, isBulk: true };
+      }
+      const single = document.getElementById('backDateInput').value;
+      return { fromDate: single, toDate: single, rangeMode: 'all', isBulk: false };
+    }
+
+    function countSelectedDatesInfo(fromDate, toDate, rangeMode) {
+      const startDt = parseLocalYmd(fromDate);
+      const endDt = parseLocalYmd(toDate);
+      if (!startDt || !endDt) return { valid: false, text: 'Select valid From & To dates' };
+      if (startDt.getTime() > endDt.getTime()) return { valid: false, text: 'From Date cannot be after To Date' };
+
+      const totalDays = Math.round((endDt.getTime() - startDt.getTime()) / 86400000) + 1;
+      if (totalDays > 180) return { valid: false, text: 'Max range is 180 days at once' };
+
+      if (rangeMode === 'sundays') {
+        let sundays = 0;
+        const cur = new Date(startDt.getTime());
+        while (cur.getTime() <= endDt.getTime()) {
+          if (cur.getDay() === 0) sundays++;
+          cur.setDate(cur.getDate() + 1);
+        }
+        return { valid: sundays > 0, count: sundays, text: `${sundays} Sunday(s) between ${formatShortDisplayDate(fromDate)} – ${formatShortDisplayDate(toDate)}` };
+      }
+
+      if (rangeMode === 'existing') {
+        return { valid: true, count: null, text: `Existing sheet columns between ${formatShortDisplayDate(fromDate)} – ${formatShortDisplayDate(toDate)}` };
+      }
+
+      return { valid: true, count: totalDays, text: `${totalDays} day(s): ${formatShortDisplayDate(fromDate)} → ${formatShortDisplayDate(toDate)}` };
+    }
+
+    function updateBulkRangeSummary() {
+      const fromDate = document.getElementById('backDateFromInput').value;
+      const toDate = document.getElementById('backDateToInput').value;
+      const rangeMode = document.getElementById('backDateRangeMode').value;
+      const summaryEl = document.getElementById('bulkRangeSummary');
+
+      const info = countSelectedDatesInfo(fromDate, toDate, rangeMode);
+      summaryEl.textContent = (info.valid ? '📅 ' : '⚠️ ') + info.text;
+      summaryEl.className = info.valid
+        ? 'text-xs font-bold text-blue-800 bg-white/90 border border-blue-200 rounded px-3 py-1.5 text-center'
+        : 'text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded px-3 py-1.5 text-center';
     }
 
     function handleRegisterSubmit() {
@@ -1046,7 +1251,7 @@
           spinner.classList.add('hidden');
           msg.classList.remove('hidden');
 
-          if (res.status === 'SUCCESS') {
+          if (res && res.status && res.status.toUpperCase() === 'SUCCESS') {
             msg.className = "text-center text-sm font-bold p-3 rounded-md bg-green-100 text-green-800 border border-green-200";
             msg.textContent = res.message;
             document.getElementById('adminAddForm').reset();
@@ -1054,7 +1259,7 @@
             document.getElementById('regSewaCheckboxWrapper').classList.add('hidden');
           } else {
             msg.className = "text-center text-sm font-bold p-3 rounded-md bg-red-100 text-red-800 border border-red-200";
-            msg.textContent = res.message || 'Error creating member';
+            msg.textContent = (res && res.message) ? res.message : 'Error creating member';
           }
         })
         .withFailureHandler(err => {
@@ -1070,11 +1275,28 @@
 
     function handleBackDateSearch() {
       const term = document.getElementById('backDateSearchTerm').value.trim();
-      const targetDate = document.getElementById('backDateInput').value;
-      if (!term || !targetDate) {
-        alert('Please select a target date and enter branch number.');
+      const params = getSelectedBackDateParams();
+      if (!term) {
+        alert('Please enter Branch No. or Name to search.');
         return;
       }
+      if (!params.fromDate || !params.toDate) {
+        alert('Please select target date(s) first.');
+        return;
+      }
+      if (params.isBulk) {
+        const info = countSelectedDatesInfo(params.fromDate, params.toDate, params.rangeMode);
+        if (!info.valid) {
+          alert(info.text);
+          return;
+        }
+      }
+
+      const attType = document.querySelector('input[name="backDateAttType"]:checked').value;
+      const searchType = document.querySelector('input[name="backDateSearchType"]:checked').value;
+      const filterGroup = backDateMode === 'bulk'
+        ? document.getElementById('backDateTargetGroupBulk').value
+        : document.getElementById('backDateTargetGroup').value;
 
       const btn = document.getElementById('backDateLookupBtn');
       const text = document.getElementById('backDateLookupText');
@@ -1088,33 +1310,23 @@
       resultsArea.innerHTML = '';
       msg.classList.add('hidden');
 
-      const filterGroup = document.getElementById('backDateTargetGroup').value;
-
       google.script.run
         .withSuccessHandler(results => {
           btn.disabled = false;
           text.classList.remove('hidden');
           spinner.classList.add('hidden');
 
-          if (results && results.length > 0) {
-            resultsArea.innerHTML = '';
-            results.forEach(student => {
-              const div = document.createElement('div');
-              div.className = 'p-4 bg-gray-50 rounded border flex items-center justify-between gap-3';
-              div.innerHTML = `
-                <div>
-                  <p class="font-bold text-gray-800">${escapeHtml(student.name)} <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">${student.categoryLabel}</span></p>
-                  <p class="text-xs text-gray-500">Branch: <strong>${student.branchNo}</strong> | DOB: ${student.dob}</p>
-                </div>
-                <button class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-2 rounded touch-btn flex items-center justify-center" onclick="submitBackDate(this, '${student.branchNo}', '${targetDate}', '${student.targetGroup}')">
-                  Mark for ${targetDate}
-                </button>
-              `;
-              resultsArea.appendChild(div);
-            });
+          let filtered = results || [];
+          if (filterGroup) {
+            filtered = filtered.filter(s => s.targetGroup.replace('_Sewa', '') === filterGroup);
+          }
+
+          lastBackDateResults = filtered;
+          if (filtered.length > 0) {
+            renderBackDateResults(filtered);
           } else {
             msg.className = "text-center text-sm font-bold p-3 rounded bg-red-100 text-red-800";
-            msg.textContent = `No members found matching "${term}".`;
+            msg.textContent = `No members found matching "${term}" in ${attType}.`;
             msg.classList.remove('hidden');
           }
         })
@@ -1124,41 +1336,111 @@
           spinner.classList.add('hidden');
           alert('Error: ' + err.message);
         })
-        .findStudents(term, 'branchNo', 'Branch');
+        .findStudents(term, searchType, attType);
     }
 
-    function submitBackDate(btn, branchNo, date, targetGroup) {
+    function renderBackDateResults(students) {
+      const resultsArea = document.getElementById('backDateResultsArea');
+      const params = getSelectedBackDateParams();
+      const attType = document.querySelector('input[name="backDateAttType"]:checked').value;
+
+      let btnLabel = `Mark (${formatShortDisplayDate(params.fromDate)})`;
+      if (params.isBulk) {
+        const info = countSelectedDatesInfo(params.fromDate, params.toDate, params.rangeMode);
+        if (!info.valid) {
+          btnLabel = 'Invalid Range';
+        } else if (info.count) {
+          btnLabel = `Mark ${info.count} Days`;
+        } else {
+          btnLabel = `Mark Range`;
+        }
+      }
+
+      resultsArea.innerHTML = '';
+      students.forEach(student => {
+        const div = document.createElement('div');
+        div.className = 'p-3.5 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between gap-3 card-enter';
+        div.innerHTML = `
+          <div class="flex-grow">
+            <div class="flex items-center space-x-1.5 flex-wrap">
+              <p class="font-bold text-gray-800 text-sm sm:text-base">${escapeHtml(student.name)}</p>
+              <span class="text-[11px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">${student.categoryLabel} (${attType})</span>
+            </div>
+            <p class="text-xs text-gray-600 mt-0.5">Father: ${escapeHtml(student.fatherName)}</p>
+            <p class="text-xs text-gray-500">Branch: <strong class="text-blue-900">${student.branchNo}</strong> | DOB: ${student.dob}</p>
+          </div>
+          <div class="flex-shrink-0">
+            <button class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-md touch-btn flex items-center justify-center shadow-xs transition-all" onclick="submitBackDate(this, '${student.branchNo}', '${student.targetGroup}')">
+              <span class="btn-text">${btnLabel}</span>
+              <span class="spinner hidden ml-1.5"></span>
+            </button>
+          </div>
+        `;
+        resultsArea.appendChild(div);
+      });
+    }
+
+    function submitBackDate(btn, branchNo, targetGroup) {
       if (!currentVolunteer || currentVolunteer.trim() === '') {
         openVolunteerModal(true);
         return;
       }
 
+      const params = getSelectedBackDateParams();
+      if (!params.fromDate || !params.toDate) {
+        alert('Please select target date(s).');
+        return;
+      }
+      if (params.isBulk) {
+        const info = countSelectedDatesInfo(params.fromDate, params.toDate, params.rangeMode);
+        if (!info.valid) {
+          alert(info.text);
+          return;
+        }
+      }
+
+      const textEl = btn.querySelector('.btn-text');
+      const spinnerEl = btn.querySelector('.spinner');
+      const msg = document.getElementById('backDateMessageArea');
+
       btn.disabled = true;
-      btn.textContent = "Marking...";
+      if (textEl) textEl.textContent = 'Saving...';
+      if (spinnerEl) spinnerEl.classList.remove('hidden');
+      msg.classList.add('hidden');
 
       const payload = {
         branchNo: branchNo,
-        date: date,
+        targetGroup: targetGroup,
+        fromDate: params.fromDate,
+        toDate: params.toDate,
+        rangeMode: params.rangeMode,
         markedBy: currentVolunteer
       };
 
       google.script.run
-        .withSuccessHandler(status => {
-          if (status === 'SUCCESS' || status === 'MARKED_BATCH') {
-            btn.className = "bg-gray-400 text-white font-bold text-xs px-3 py-2 rounded cursor-not-allowed";
-            btn.textContent = "✓ Marked";
+        .withSuccessHandler(res => {
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+          if (res && res.status === 'SUCCESS') {
+            btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-md cursor-not-allowed flex items-center justify-center";
+            if (textEl) textEl.textContent = `✓ Marked (${res.markedCount}d)`;
+            msg.className = "text-center text-xs sm:text-sm font-bold p-3 rounded-md bg-green-100 text-green-900 border border-green-200 card-enter";
+            msg.textContent = `✓ Marked ${res.markedCount} date(s) for ${res.studentName || ('Branch ' + branchNo)} (${res.fromDate} to ${res.toDate}) & saved to AttendanceRecords!`;
+            msg.classList.remove('hidden');
           } else {
             btn.disabled = false;
-            btn.textContent = "Retry";
-            alert('Could not mark: ' + status);
+            if (textEl) textEl.textContent = 'Retry';
+            msg.className = "text-center text-xs sm:text-sm font-bold p-3 rounded-md bg-red-100 text-red-800 border border-red-200";
+            msg.textContent = (res && res.message) ? res.message : 'Failed to mark bulk attendance.';
+            msg.classList.remove('hidden');
           }
         })
         .withFailureHandler(err => {
           btn.disabled = false;
-          btn.textContent = "Retry";
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+          if (textEl) textEl.textContent = 'Retry';
           alert('Error: ' + err.message);
         })
-        .markPresent(payload, targetGroup);
+        .markBulkAttendance(payload);
     }
 
     // ================= VOLUNTEER IDENTITY MODAL & PERSISTENCE =================

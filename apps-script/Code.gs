@@ -8,9 +8,9 @@
  *      * 10001 - 10500  -> Student Boys
  *      * 10501+         -> Student Girls
  *      * 1 - 10000      -> Jigyasu Gents & Jigyasu Ladies (shows both on overlap)
- *  - Clean Branch Attendance / Sewa Attendance mode switch
+ *  - Clean Satsang Attendance / Sewa Attendance mode switch
  *  - Volunteer identity logging (Zero Google OAuth "Unsafe App" warnings)
- *  - Full back-date attendance & queue batch processing preserved
+ *  - Full single & bulk date-range back-date attendance & queue batch processing preserved
  *  - DOR (Date of Registration) calculations preserved
  *  - PWA install & mobile viewport enhancements
  * ===================================================================
@@ -282,7 +282,7 @@ function getSheetSearchIndex(targetKey) {
 
 /**
  * UNIFIED SEARCH FUNCTION:
- * Searches across all relevant sheets in the chosen attendance mode (Branch or Sewa).
+ * Searches across all relevant sheets in the chosen attendance mode (Satsang or Sewa).
  * Uses static branch number heuristics:
  *   - 10001 - 10500 -> Student Boys
  *   - 10501+        -> Student Girls
@@ -290,11 +290,11 @@ function getSheetSearchIndex(targetKey) {
  * If overlapping branch numbers or duplicate names exist, returns all matches with category labels.
  */
 function findStudents(searchTerm, searchType, attendanceType) {
-  attendanceType = attendanceType || 'Branch';
+  attendanceType = attendanceType || 'Satsang';
   const query = String(searchTerm || '').trim().toLowerCase();
   if (!query) return [];
   
-  const isSewa = (attendanceType === 'Sewa');
+  const isSewa = (String(attendanceType).toLowerCase() === 'sewa');
   const groupList = isSewa ? TARGET_GROUPS.SEWA : TARGET_GROUPS.BRANCH;
   const isBranchNo = (searchType === 'branchNo');
   const numVal = parseInt(query, 10);
@@ -615,27 +615,237 @@ function processQueue() {
   }
   
   // Write audit log to 'AttendanceRecords' sheet (Columns A to F)
-  if (auditLogs.length > 0) {
-    try {
-      let recordsSheet = ss.getSheetByName('AttendanceRecords');
-      if (!recordsSheet) {
-        recordsSheet = ss.insertSheet('AttendanceRecords');
-        recordsSheet.getRange(1, 1, 1, 6).setValues([
-          ['Timestamp', 'Date', 'Branch No.', 'Name', "Father's Name", 'MarkedBy']
-        ]);
-        recordsSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f4f6');
-        recordsSheet.setFrozenRows(1);
-      }
-      const lastLogRow = recordsSheet.getLastRow();
-      recordsSheet.getRange(lastLogRow + 1, 1, auditLogs.length, 6).setValues(auditLogs);
-    } catch (e) {
-      Logger.log(`AttendanceRecords recording failed: ${e.message}`);
-    }
-  }
+  writeAttendanceAuditLogs_(ss, auditLogs);
 
   SpreadsheetApp.flush();
   lock.releaseLock();
   Logger.log(`processQueue finished | Success: ${results.success}`);
+}
+
+/**
+ * Writes audit log rows [Timestamp, Date, Branch No., Name, Father's Name, MarkedBy]
+ * to the 'AttendanceRecords' sheet, creating it with headers if missing.
+ */
+function writeAttendanceAuditLogs_(ss, auditLogs) {
+  if (!auditLogs || auditLogs.length === 0) return;
+  try {
+    let recordsSheet = ss.getSheetByName('AttendanceRecords');
+    if (!recordsSheet) {
+      recordsSheet = ss.insertSheet('AttendanceRecords');
+      recordsSheet.getRange(1, 1, 1, 6).setValues([
+        ['Timestamp', 'Date', 'Branch No.', 'Name', "Father's Name", 'MarkedBy']
+      ]);
+      recordsSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f4f6');
+      recordsSheet.setFrozenRows(1);
+    }
+    const lastLogRow = recordsSheet.getLastRow();
+    recordsSheet.getRange(lastLogRow + 1, 1, auditLogs.length, 6).setValues(auditLogs);
+  } catch (e) {
+    Logger.log(`AttendanceRecords recording failed: ${e.message}`);
+  }
+}
+
+/**
+ * Marks attendance in bulk across a date range (or single date) directly and atomically.
+ * Designed for Admin Back-Date Attendance (e.g., 1 July to 20 July in one tap).
+ */
+function markBulkAttendance(payload) {
+  if (!payload || !payload.branchNo || !payload.targetGroup || !payload.fromDate) {
+    return { status: 'ERROR', message: 'Missing required fields for bulk attendance.' };
+  }
+
+  const branchNo = String(payload.branchNo).trim();
+  const targetGroup = String(payload.targetGroup).trim();
+  const fromStr = String(payload.fromDate).trim();
+  const toStr = String(payload.toDate || payload.fromDate).trim();
+  const rangeMode = String(payload.rangeMode || 'all').toLowerCase(); // 'all' | 'sundays' | 'existing'
+  const markedBy = String(payload.markedBy || 'Volunteer').trim();
+
+  const fromParts = fromStr.split('-').map(Number);
+  const toParts = toStr.split('-').map(Number);
+  if (fromParts.length !== 3 || toParts.length !== 3 || fromParts.some(isNaN) || toParts.some(isNaN)) {
+    return { status: 'ERROR', message: 'Invalid date format. Expected YYYY-MM-DD.' };
+  }
+
+  const startDt = new Date(fromParts[0], fromParts[1] - 1, fromParts[2], 12, 0, 0);
+  const endDt = new Date(toParts[0], toParts[1] - 1, toParts[2], 12, 0, 0);
+  if (startDt.getTime() > endDt.getTime()) {
+    return { status: 'ERROR', message: 'From Date cannot be after To Date.' };
+  }
+
+  const dayDiff = Math.round((endDt.getTime() - startDt.getTime()) / 86400000) + 1;
+  if (dayDiff > 180) {
+    return { status: 'ERROR', message: 'Maximum bulk range is 180 days at a time.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    if (!lock.tryLock(LOCK_TIMEOUT)) {
+      return { status: 'ERROR', message: 'Server busy. Please try again in a moment.' };
+    }
+  } catch (e) {
+    return { status: 'ERROR', message: 'Could not acquire lock.' };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ssTimeZone = ss.getSpreadsheetTimeZone();
+    const config = getSheetConfig(targetGroup);
+    const sheet = ss.getSheetByName(config.sheetName);
+
+    if (!sheet) {
+      lock.releaseLock();
+      return { status: 'ERROR', message: `Sheet "${config.sheetName}" not found.` };
+    }
+
+    const numRows = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    if (numRows <= 1) {
+      lock.releaseLock();
+      return { status: 'ERROR', message: 'No member rows found in sheet.' };
+    }
+
+    // Locate member row
+    const branchData = sheet.getRange(2, config.branchNoCol + 1, numRows - 1, 1).getValues();
+    let memberRowOffset = -1;
+    for (let r = 0; r < branchData.length; r++) {
+      if (String(branchData[r][0]).trim() === branchNo) {
+        memberRowOffset = r;
+        break;
+      }
+    }
+
+    if (memberRowOffset === -1) {
+      lock.releaseLock();
+      return { status: 'ERROR', message: `Branch No. ${branchNo} not found in ${config.sheetName}.` };
+    }
+
+    const memberRow1Based = memberRowOffset + 2;
+    const headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+
+    // Map existing date columns ("YYYY-MM-DD" -> 1-based colIndex)
+    const existingColMap = {};
+    for (let i = config.attendanceStartCol; i < headers.length; i++) {
+      const hv = headers[i];
+      let hStr = '';
+      if (hv instanceof Date) {
+        hStr = Utilities.formatDate(hv, ssTimeZone, 'yyyy-MM-dd');
+      } else if (hv) {
+        const parsed = parseSmartDate(hv);
+        if (parsed) {
+          hStr = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+        }
+      }
+      if (hStr && !existingColMap[hStr]) {
+        existingColMap[hStr] = i + 1;
+      }
+    }
+
+    // Build target date list according to rangeMode
+    const targetDates = [];
+    const cur = new Date(startDt.getTime());
+    while (cur.getTime() <= endDt.getTime()) {
+      const cy = cur.getFullYear();
+      const cm = cur.getMonth();
+      const cd = cur.getDate();
+      const ymd = `${cy}-${String(cm + 1).padStart(2, '0')}-${String(cd).padStart(2, '0')}`;
+      const display = `${cm + 1}/${cd}/${String(cy).slice(-2)}`;
+
+      let include = true;
+      if (rangeMode === 'sundays') {
+        include = (cur.getDay() === 0);
+      } else if (rangeMode === 'existing') {
+        include = Boolean(existingColMap[ymd]);
+      }
+
+      if (include) {
+        targetDates.push({ ymd: ymd, display: display });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    if (targetDates.length === 0) {
+      lock.releaseLock();
+      const reason = rangeMode === 'existing'
+        ? 'No existing date columns found in this sheet for the selected date range.'
+        : 'No matching dates found in the selected range.';
+      return { status: 'ERROR', message: reason };
+    }
+
+    // Determine column indices & batch-create missing date headers if needed
+    let nextColBase = Math.max(lastCol, config.attendanceStartCol);
+    const newHeaderStartCol = nextColBase + 1;
+    const newHeaders = [];
+    const colAssignments = [];
+
+    targetDates.forEach(d => {
+      if (existingColMap[d.ymd]) {
+        colAssignments.push({ colIndex: existingColMap[d.ymd], ymd: d.ymd });
+      } else {
+        nextColBase++;
+        newHeaders.push(d.display);
+        colAssignments.push({ colIndex: nextColBase, ymd: d.ymd });
+      }
+    });
+
+    if (newHeaders.length > 0) {
+      sheet.getRange(1, newHeaderStartCol, 1, newHeaders.length)
+        .setValues([newHeaders])
+        .setNumberFormat('M/d/yy')
+        .setFontWeight('bold')
+        .setHorizontalAlignment('center');
+    }
+
+    // Update member's attendance cells in a single batch read/write
+    const startAttCol1Based = config.attendanceStartCol + 1;
+    const numAttCols = nextColBase - config.attendanceStartCol;
+    const attRange = sheet.getRange(memberRow1Based, startAttCol1Based, 1, numAttCols);
+    const attValues = attRange.getValues()[0];
+
+    colAssignments.forEach(item => {
+      const idx = item.colIndex - startAttCol1Based;
+      if (idx >= 0 && idx < attValues.length) {
+        attValues[idx] = 'P';
+      }
+    });
+    attRange.setValues([attValues]);
+
+    // Read member Name & Father's Name for AttendanceRecords
+    const metaWidth = Math.max(config.nameCol + 1, (config.fatherNameCol || 0) + 1);
+    const metaRow = sheet.getRange(memberRow1Based, 1, 1, metaWidth).getValues()[0];
+    const studentName = String(metaRow[config.nameCol] || '').trim();
+    const fatherName = (config.fatherNameCol !== null && config.fatherNameCol !== undefined)
+      ? String(metaRow[config.fatherNameCol] || '').trim()
+      : '';
+
+    const timestampStr = Utilities.formatDate(new Date(), 'GMT+5:30', 'dd-MM-yyyy HH:mm:ss');
+    const logs = colAssignments.map(item => [
+      timestampStr,
+      item.ymd,
+      branchNo,
+      studentName,
+      fatherName,
+      markedBy
+    ]);
+
+    writeAttendanceAuditLogs_(ss, logs);
+    SpreadsheetApp.flush();
+    lock.releaseLock();
+
+    return {
+      status: 'SUCCESS',
+      markedCount: colAssignments.length,
+      newColumns: newHeaders.length,
+      studentName: studentName,
+      fromDate: fromStr,
+      toDate: toStr
+    };
+
+  } catch (e) {
+    Logger.log(`markBulkAttendance Error: ${e.message}`);
+    lock.releaseLock();
+    return { status: 'ERROR', message: e.message };
+  }
 }
 
 // ============= STATS & DETAILS =============
@@ -802,7 +1012,7 @@ function addStudent(studentData, targetGroup, alsoAddToSewa) {
     }
 
     // 3. Contact & Address
-    newRow[config.addressCol] = [studentData.address1, studentData.address2, studentData.address3].filter(Boolean).join(', ');
+    newRow[config.addressCol] = studentData.address || [studentData.address1, studentData.address2, studentData.address3].filter(Boolean).join(', ');
     newRow[config.phoneCol] = studentData.phone;
     newRow[config.emailCol] = studentData.email;
     newRow[config.aadhaarCol] = studentData.aadhar;
